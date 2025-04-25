@@ -77,28 +77,45 @@ async function fetchCompanyInfo(url) {
       console.log('🔗 Ziel-URLs:', targets);
   
       let fullText = '';
-  
+      let impressumText = '';
+      let contactText = '';
+      let otherText = '';
+      
       for (const targetUrl of targets) {
-        if (visitedUrls.has(targetUrl)) continue;
-        try {
-          await page.goto(targetUrl, { waitUntil: 'networkidle', timeout: 15000 });
-          await page.waitForTimeout(2000);
-  
-          await page.evaluate(() => {
-            const cookie = document.querySelector('[id*="cookie"], .cookie-banner, .cc-window');
-            if (cookie) cookie.remove();
-          });
-  
-          const text = await page.evaluate(() => document.body.innerText);
-          fullText += `\n\n--- TEXT VON ${targetUrl} ---\n` + text.trim().replace(/\s+/g, ' ');
-          visitedUrls.add(targetUrl);
-        } catch (err) {
-          console.warn(`⚠️ Fehler beim Laden von ${targetUrl}:`, err.message);
-        }
+          if (visitedUrls.has(targetUrl)) continue;
+          try {
+              await page.goto(targetUrl, { waitUntil: 'networkidle', timeout: 15000 });
+              await page.waitForTimeout(2000);
+      
+              await page.evaluate(() => {
+                  const cookie = document.querySelector('[id*="cookie"], .cookie-banner, .cc-window');
+                  if (cookie) cookie.remove();
+              });
+      
+              const text = await page.evaluate(() => document.body.innerText);
+              const cleanedText = text.trim().replace(/\s+/g, ' ');
+      
+              if (targetUrl.toLowerCase().includes('impressum')) {
+                  impressumText += `\n\n--- IMPRESSUM ---\n${cleanedText}`;
+              } else if (targetUrl.toLowerCase().includes('contact') || targetUrl.toLowerCase().includes('kontakt')) {
+                  contactText += `\n\n--- KONTAKT ---\n${cleanedText}`;
+              } else {
+                  otherText += `\n\n--- SEITE: ${targetUrl} ---\n${cleanedText}`;
+              }
+      
+              visitedUrls.add(targetUrl);
+      
+          } catch (err) {
+              console.warn(`⚠️ Fehler beim Laden von ${targetUrl}:`, err.message);
+          }
       }
+      
+      // Gib alles zusammen zurück (Impressum & Kontakt zuerst!)
+      return (impressumText + contactText + otherText).slice(0, 24000);
+      
   
       console.log('✅ Gesamttextlänge:', fullText.length);
-      return fullText.slice(0, 12000); // OpenAI Token Limit
+      return fullText.slice(0, 24000); // OpenAI Token Limit
     } catch (err) {
       console.error('❌ Fehler beim Scrapen:', err.message);
       return null;
@@ -113,36 +130,43 @@ async function fetchCompanyInfo(url) {
 
 // Funktion zum Analysieren des Unternehmensinhalts mit OpenAI
 async function analyzeCompanyContent(visibleText) {
-    const prompt = `
-    Du bist ein intelligenter Assistent, der Informationen aus Texten extrahiert. 
-    Bitte analysiere den folgenden Text einer Unternehmenswebseite und extrahiere:
-    
-    - Unternehmensname
-    - Unternehmensbeschreibung
-    - **Postanschrift (Adresse)** – bitte vollständig mit Straße, PLZ, Ort und Land, falls vorhanden
-    - Unternehmensstandort (z. B. Stadt, Land, Hauptsitz)
-    - Tätigkeitsbereich oder Branche
-    - Größe oder andere relevante Infos
-    
-    Text:
-    """${visibleText}"""
-    `;
-    
+  const prompt = `
+Du bist ein Experte für Unternehmensanalyse.
 
-    try {
-        const aiResponse = await askOpenAI([
-            { role: 'system', content: 'Du bist ein intelligenter Assistent, der Webseiteninhalte analysiert.' },
-            { role: 'user', content: prompt }
-        ]);
+Hier sind verschiedene Abschnitte der Unternehmenswebseite. 
+Achtung: Der Bereich "IMPRESSUM" enthält die offizielle Adresse.
 
-        const extractedInfo = aiResponse.choices[0].message.content.trim();
-        console.log('🏷️ Extrahierte Unternehmensinformationen:', extractedInfo);
-        return extractedInfo;
-    } catch (error) {
-        console.error('Fehler bei der Analyse des Inhalts mit OpenAI:', error);
-        return null;
-    }
+Extrahiere bitte nur:
+
+- **Unternehmensname**
+- **Unternehmensbeschreibung**
+- **Hauptsitz (Adresse)**: Nur die Adresse aus dem "IMPRESSUM"-Abschnitt verwenden!
+- **Tätigkeitsbereich oder Branche**
+- **Unternehmensgröße oder weitere relevante Infos**
+
+Hier ist der Text:
+
+"""${visibleText}"""
+
+Gib die Antwort bitte klar strukturiert und vollständig zurück.
+`;
+
+  try {
+      const aiResponse = await askOpenAI([
+          { role: 'system', content: 'Du bist ein hilfreicher Assistent für die Extraktion von Unternehmensdaten.' },
+          { role: 'user', content: prompt }
+      ]);
+
+      const extractedInfo = aiResponse.choices[0].message.content.trim();
+      console.log('🏷️ Extrahierte Unternehmensinformationen:', extractedInfo);
+      return extractedInfo;
+  } catch (error) {
+      console.error('Fehler bei der Analyse des Inhalts mit OpenAI:', error);
+      return null;
+  }
 }
+
+
 
 
 // POST-Route für das Hochladen und Verarbeiten von PDFs
