@@ -95,6 +95,10 @@
   <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
+    <!-- SortableJS -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+
+
   <!-- Custom Script -->
   <script>
 
@@ -261,27 +265,31 @@ function renderExperienceList() {
     item.className = 'list-group-item mb-3 shadow-sm rounded';
 
     item.innerHTML = `
-      <div class="row g-3 align-items-center">
-        <div class="col-md-4">
-          <label class="form-label">Tätigkeit</label>
-          <input type="text" class="form-control" value="${exp.tätigkeit || ''}" 
-            onchange="updateExperienceField(${index}, 'tätigkeit', this.value)">
+        <div class="row g-3 align-items-center">
+            <div class="col-md-1 d-flex align-items-center justify-content-center">
+            <span class="drag-handle" style="cursor: grab;">☰</span>
+            </div>
+            <div class="col-md-3">
+            <label class="form-label">Tätigkeit</label>
+            <input type="text" class="form-control" value="${exp.tätigkeit || ''}" 
+                onchange="updateExperienceField(${index}, 'tätigkeit', this.value)">
+            </div>
+            <div class="col-md-4">
+            <label class="form-label">Zeitraum</label>
+            <input type="text" class="form-control" value="${exp.zeitraum || ''}" 
+                onchange="updateExperienceField(${index}, 'zeitraum', this.value)">
+            </div>
+            <div class="col-md-3">
+            <label class="form-label">Einrichtung</label>
+            <input type="text" class="form-control" value="${exp.einrichtung || ''}" 
+                onchange="updateExperienceField(${index}, 'einrichtung', this.value)">
+            </div>
+            <div class="col-md-1 text-end">
+            <button class="btn btn-sm btn-danger mt-4" onclick="deleteExperience(${index})">🗑️</button>
+            </div>
         </div>
-        <div class="col-md-4">
-          <label class="form-label">Zeitraum</label>
-          <input type="text" class="form-control" value="${exp.zeitraum || ''}" 
-            onchange="updateExperienceField(${index}, 'zeitraum', this.value)">
-        </div>
-        <div class="col-md-4">
-          <label class="form-label">Einrichtung</label>
-          <input type="text" class="form-control" value="${exp.einrichtung || ''}" 
-            onchange="updateExperienceField(${index}, 'einrichtung', this.value)">
-        </div>
-      </div>
-      <div class="text-end mt-2">
-        <button class="btn btn-sm btn-danger" onclick="deleteExperience(${index})">🗑️ Löschen</button>
-      </div>
     `;
+
     experienceList.appendChild(item);
   });
 }
@@ -319,6 +327,23 @@ function addExperience() {
   renderExperienceList();
 }
 
+// Nach dem DOM-Render einmal Sortable aktivieren
+new Sortable(document.getElementById('experienceList'), {
+  animation: 150,
+  handle: '.drag-handle',
+  ghostClass: 'bg-light',
+  onEnd: function (evt) {
+    // Neue Reihenfolge übernehmen
+    const oldIndex = evt.oldIndex;
+    const newIndex = evt.newIndex;
+
+    if (oldIndex !== newIndex) {
+      const movedItem = experienceData.splice(oldIndex, 1)[0];
+      experienceData.splice(newIndex, 0, movedItem);
+      console.log("🔀 Neue Reihenfolge:", experienceData);
+    }
+  }
+});
 
 
 
