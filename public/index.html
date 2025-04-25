@@ -356,7 +356,7 @@ function renderExperienceList() {
         </div>
       </div>
       <div class="text-end mt-2">
-        <button class="btn btn-sm btn-danger" onclick="deleteInternship(${index})">
+        <button class="btn btn-sm btn-danger" onclick="deleteExperience(${index})">
           🗑️ Löschen
         </button>
       </div>
@@ -468,11 +468,21 @@ function updateInternshipField(index, field, value) {
 
 // Löschen der Berufsausbildungen
 function deleteExperience(index) {
-  if (confirm("Willst du diese Erfahrung wirklich löschen?")) {
-    experienceData.splice(index, 1);
-    renderExperienceList();
-  }
+    if (confirm("Willst du diese Erfahrung wirklich löschen?")) {
+        // Konsolenausgabe zum Prüfen des aktuellen Zustands
+        console.log("Vor dem Löschen:", experienceData);
+        
+        // Das Element löschen
+        experienceData.splice(index, 1);
+
+        // Konsolenausgabe nach dem Löschen
+        console.log("Nach dem Löschen:", experienceData);
+        
+        // Liste neu rendern
+        renderExperienceList();
+    }
 }
+
 
 // Löschen der Schulbildung/Ausbildung
 function deleteEducation(index) {
