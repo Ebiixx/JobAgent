@@ -281,17 +281,36 @@ app.post('/api/generate-cover-letter', async (req, res) => {
 
         // 3. Bewerbungsschreiben erstellen
         const prompt = `
-            Ich bin ${name}, geboren am ${birthdate}, wohnhaft in ${address}.
-            Meine Telefonnummer ist ${phone}, meine E-Mail-Adresse ist ${email}${linkedin ? `, mein LinkedIn-Profil ist ${linkedin}` : ''}.
-            Ich bewerbe mich als ${jobTitle} bei ${company}.
-            Die Stellenbeschreibung lautet: ${jobDescription}.
-            Unternehmensseite: ${companyUrl}.
-            
-            Unternehmensinformationen:
-            ${companyInfo}
-            
-            Bitte formuliere ein vollständiges und professionelles Bewerbungsschreiben basierend auf diesen Informationen.
+          Ich bin ${name}, geboren am ${birthdate}, wohnhaft in ${address}.
+          Meine Telefonnummer ist ${phone}, meine E-Mail-Adresse ist ${email}${linkedin ? `, mein LinkedIn-Profil ist ${linkedin}` : ''}.
+          Ich bewerbe mich als ${jobTitle} bei ${company}.
+          Die Stellenbeschreibung lautet: ${jobDescription}.
+          Unternehmensseite: ${companyUrl}.
+          
+          Unternehmensinformationen:
+          ${companyInfo}
+          
+          Bitte formuliere daraus ein vollständiges, professionelles Bewerbungsschreiben.
+          
+          ⚠️ Regeln für die Formatierung:
+          - Keine Markdown-Formatierungen wie **Fettdruck**, *Kursiv* oder Überschriften (#).
+          - Keine Emojis oder Sonderzeichen verwenden.
+          - Gib den Text bitte nur als reinen Fließtext mit normalen Absätzen zurück.
+          - Stellen die noch manuell geändert oder hinzugefügt werden müssen sollten auch hervorgehoben werden, am besten **Fettdruck**
+
+          Struktur:
+          - Oben Name und Adresse (klassisch wie in einem Briefkopf)
+          - Datum (automatisch [heutiges Datum])
+          - Empfängeradresse
+          - Betreffzeile (Betreff: Bewerbung als XYZ)
+          - Anrede (Sehr geehrte Damen und Herren,)
+          - Fließtext (Vorstellung, Motivation, Abschluss)
+          - Freundliche Grußformel
+          - Name unter der Grußformel
+          
+          Der Text soll einen höflichen, professionellen Stil haben und gut lesbar sein.
         `;
+        
         
 
         const aiResponse = await askOpenAI([

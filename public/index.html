@@ -138,10 +138,11 @@
       <button class="btn btn-success" onclick="startAgent()">🚀 Bewerbung erstellen lassen</button>
       <span id="loading" class="ms-3 text-muted" style="display: none;">⏳ Agent arbeitet...</span>
 
-      <div class="mt-4">
-        <h5>Antwort:</h5>
-        <div id="responseOutput" class="bg-white p-3 rounded border" style="white-space: pre-line;"></div>
+      <div id="letterContainer" class="bg-white p-5 rounded shadow-sm mx-auto" style="max-width: 800px;">
+        <h2 class="mb-4 text-center text-primary">📄 Ihr Bewerbungsschreiben</h2>
+        <div id="responseOutput" class="text-start" style="font-family: 'Georgia', serif; font-size: 1.1rem; line-height: 1.7;"></div>
       </div>
+      
 
       <button class="btn btn-outline-secondary mb-3" onclick="copyLetter()">📋 In Zwischenablage</button>
     </div>
@@ -636,12 +637,17 @@ new Sortable(document.getElementById('internshipList'), {
 
 
 function formatLetter(text) {
+  // Markdown **fett** in echtes HTML <strong> umwandeln
+  text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
   // Absätze erkennen (2 oder mehr Zeilenumbrüche)
   const paragraphs = text.trim().split(/\n\s*\n/);
+
   return paragraphs
     .map(p => `<p>${p.replace(/\n/g, ' ')}</p>`)
     .join('');
 }
+
 
 function copyLetter() {
   const html = document.getElementById('responseOutput').innerText;
