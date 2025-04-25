@@ -42,6 +42,7 @@ app.post('/api/chat', async (req, res) => {
 
 // Upload + PDF-Inhalt analysieren
 app.post('/api/upload-cv', upload.single('cv'), async (req, res) => {
+    console.log("📥 PDF empfangen!");
     const filePath = req.file.path;
   
     try {
@@ -50,13 +51,10 @@ app.post('/api/upload-cv', upload.single('cv'), async (req, res) => {
       const extractedText = pdfData.text;
   
       const aiPrompt = `
-  Extrahiere aus diesem Lebenslauf strukturiert folgende Informationen:
-  - Name
-  - Geburtsdatum
-  - Adresse
-  - Berufserfahrungen (in Stichpunkten oder kurzen Absätzen)
-  Hier ist der Text:
+  Extrahiere aus diesem Lebenslauf folgende Informationen und gib die Antwort als JSON zurück:
+  { "name": "", "birthdate": "", "address": "", "experience": [""] }
   
+  Hier ist der Lebenslauftext:
   """${extractedText}"""
   `;
   
@@ -65,16 +63,47 @@ app.post('/api/upload-cv', upload.single('cv'), async (req, res) => {
         { role: 'user', content: aiPrompt }
       ]);
   
-      const answer = aiResponse.choices[0].message.content;
-      res.json({ extracted: answer });
+      console.log("🤖 Antwort von OpenAI:", aiResponse.choices[0].message.content);
+  
+      // SCHRITT 1: Antwort sofort schicken
+      // 1. OpenAI Antwort holen
+        let openaiContent = aiResponse.choices[0].message.content.trim();
+
+        // 2. Falls OpenAI mit Markdown-Block (```json) antwortet, diesen entfernen
+        if (openaiContent.startsWith("```")) {
+            openaiContent = openaiContent.replace(/```json|```/g, '').trim();
+        }
+
+        console.log("✅ Aufbereiteter JSON-Text:", openaiContent);
+
+        // 3. Versuchen, das in echtes JSON zu parsen
+        let jsonData;
+        try {
+            jsonData = JSON.parse(openaiContent);
+        } catch (parseError) {
+            console.error("❌ Fehler beim Parsen von OpenAI-Text zu JSON:", parseError);
+            return res.status(500).json({ error: "OpenAI Antwort war kein gültiges JSON." });
+        }
+
+        // 4. Jetzt korrekt echtes JSON senden
+        res.json({ extracted: jsonData });
+
+  
+      // SCHRITT 2: Danach (!) sauber im Hintergrund löschen
+      setTimeout(() => {
+        fs.unlink(filePath, (err) => {
+          if (err) console.error('Fehler beim Löschen der Datei:', err);
+          else console.log('🗑️ Temporäre Datei gelöscht.');
+        });
+      }, 500);
+  
     } catch (err) {
       console.error('Fehler beim Verarbeiten des PDFs:', err);
       res.status(500).json({ error: 'PDF konnte nicht verarbeitet werden.' });
-    } finally {
-      // Datei löschen (tmp)
-      fs.unlink(filePath, () => {});
     }
   });
+  
+  
   
 
 // Server starten

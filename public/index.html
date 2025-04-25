@@ -49,7 +49,7 @@
           <div class="mb-3">
             <label class="form-label">Lebenslauf (PDF)</label>
             <input type="file" class="form-control" id="cvUpload" accept=".pdf" />
-            <button class="btn btn-secondary mt-2" onclick="uploadCV()">📤 PDF auslesen</button>
+            <button type="button" class="btn btn-secondary mt-2" onclick="uploadCV(event)">📤 PDF auslesen</button>
             <div id="uploadStatus" class="form-text text-muted mt-1" style="display: none;">⏳ Wird analysiert...</div>
           </div>    
         </form>
@@ -138,57 +138,92 @@ Bitte formuliere ein professionelles Bewerbungsschreiben dafür.`;
       }
     }
 
-    async function uploadCV() {
+    async function uploadCV(event) {
+  event.preventDefault(); // <<< WICHTIG!! Verhindert das Neuladen
+
   const fileInput = document.getElementById('cvUpload');
   const status = document.getElementById('uploadStatus');
 
-  if (!fileInput.files[0]) return alert('Bitte eine PDF-Datei auswählen!');
+  if (!fileInput.files[0]) {
+    alert('Bitte eine PDF-Datei auswählen!');
+    return;
+  }
 
   const formData = new FormData();
   formData.append('cv', fileInput.files[0]);
 
   status.style.display = 'inline';
-  status.textContent = '⏳ Wird analysiert...';
+  status.textContent = '📤 Datei wird hochgeladen...';
 
   try {
     const res = await fetch('/api/upload-cv', {
       method: 'POST',
       body: formData,
     });
+
     const data = await res.json();
+    console.log("📦 Daten vom Server erhalten:", data);
 
-    if (data.extracted) {
-      status.textContent = '✅ Daten extrahiert!';
-      alert("Extrahierter Text:\n\n" + data.extracted);
-
-      // Optional: KI-Antwort weiterverarbeiten und Felder füllen (einfacher Versuch)
-      if (data.extracted.includes('Name:')) {
-        const match = data.extracted.match(/Name:\s*(.*)/i);
-        if (match) document.getElementById('name').value = match[1].trim();
-      }
-
-      if (data.extracted.includes('Geburtsdatum:')) {
-        const match = data.extracted.match(/Geburtsdatum:\s*(.*)/i);
-        if (match) document.getElementById('birthdate').value = match[1].trim();
-      }
-
-      if (data.extracted.includes('Adresse:')) {
-        const match = data.extracted.match(/Adresse:\s*(.*)/i);
-        if (match) document.getElementById('address').value = match[1].trim();
-      }
-
-      if (data.extracted.includes('Berufserfahrungen:')) {
-        const match = data.extracted.match(/Berufserfahrungen:\s*([\s\S]*)/i);
-        if (match) document.getElementById('experience').value = match[1].trim();
-      }
-    } else {
-      status.textContent = '⚠️ Keine Daten gefunden.';
+    if (!data.extracted) {
+      console.error("⚠️ Keine 'extracted'-Antwort vom Server erhalten!");
+      status.textContent = '⚠️ KI konnte keine Daten extrahieren.';
+      return;
     }
+
+    status.textContent = '✅ KI-Daten erhalten. Verarbeite Antwort...';
+    await delay(500); // kleine Pause, damit Status sichtbar bleibt
+
+    const json = data.extracted;
+
+    console.log("✅ Verarbeitetes JSON:", json);
+
+    if (json) {
+      console.log("➡️ Versuche, Felder zu befüllen...");
+
+      if (json.name) {
+        console.log("✏️ Name gefunden:", json.name);
+        document.getElementById('name').value = json.name;
+      }
+      if (json.birthdate) {
+        console.log("✏️ Geburtsdatum gefunden:", json.birthdate);
+        document.getElementById('birthdate').value = json.birthdate;
+      }
+      if (json.address) {
+        console.log("✏️ Adresse gefunden:", json.address);
+        document.getElementById('address').value = json.address;
+      }
+      if (json.experience && Array.isArray(json.experience)) {
+        console.log("✏️ Berufserfahrung gefunden:", json.experience);
+        document.getElementById('experience').value = json.experience.join("\n");
+      }
+
+      status.textContent = '✅ Felder erfolgreich aus KI-Daten befüllt!';
+    } else {
+      console.error("⚠️ JSON war leer oder ungültig.");
+      status.textContent = '⚠️ KI-Antwort konnte nicht verarbeitet werden.';
+    }
+
   } catch (err) {
-    console.error(err);
-    status.textContent = '❌ Fehler beim Upload.';
+    console.error("❌ Schwerer Fehler bei Upload/Verarbeitung:", err);
+    status.textContent = '❌ Schwerer Fehler beim Upload oder bei der Analyse.';
   }
 }
+
+
+// Hilfsfunktion für kleine Wartezeiten
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+
+
+
+
+// Hilfsfunktion für Delay
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 
   </script>
 </body>
