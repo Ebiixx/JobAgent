@@ -292,35 +292,42 @@ app.post('/api/generate-cover-letter', async (req, res) => {
           Die Stellenbeschreibung lautet: ${jobDescription}.
           Unternehmensseite: ${companyUrl}.
           
-          Meine wichtigsten beruflichen Erfahrungen:
+          Hier sind meine bisherigen beruflichen Erfahrungen:
           ${experienceData.map(exp => `- ${exp.tätigkeit} bei ${exp.einrichtung} (${exp.zeitraum})`).join('\n')}
           
-          Meine absolvierte Schulbildung / Ausbildung:
+          Meine Ausbildungsstationen:
           ${educationData.map(edu => `- ${edu.abschluss} an der ${edu.schulname} (${edu.zeitraum})`).join('\n')}
           
-          Meine Praktika:
+          Meine absolvierten Praktika:
           ${internshipData.map(intern => `- ${intern.praktikum} bei ${intern.unternehmen} (${intern.zeitraum})`).join('\n')}
           
-          Bitte formuliere daraus ein vollständiges, professionelles Bewerbungsschreiben.
+          Unternehmensinformationen:
+          ${companyInfo}
           
-          ⚠️ Regeln für die Formatierung:
+          ⚠️ Regeln für das Anschreiben:
           - Keine Markdown-Formatierungen wie **Fettdruck**, *Kursiv* oder Überschriften (#).
           - Keine Emojis oder Sonderzeichen verwenden.
-          - Gib den Text bitte nur als reinen Fließtext mit normalen Absätzen zurück.
+          - Text bitte als klaren Fließtext mit normalen Absätzen schreiben.
           - Stellen, die noch manuell geändert oder individuell ergänzt werden müssen, sollen bitte **fett hervorgehoben** sein (durch **Sternchen**).
           
-          Struktur:
-          - Oben Name und Adresse (klassisch wie in einem Briefkopf)
-          - Datum (heutiges Datum automatisch)
-          - Empfängeradresse
-          - Betreffzeile (Betreff: Bewerbung als XYZ)
-          - Anrede (Sehr geehrte Damen und Herren,)
-          - Fließtext (Vorstellung, Bezug auf Erfahrung, Motivation, Bezug auf Unternehmen)
-          - Freundliche Grußformel
-          - Name unter der Grußformel
+          ⚡ Zusätzliche Anweisungen:
+          - Nutze die Informationen aus meinen Berufserfahrungen, Praktika und Ausbildungen, um Stärken, Skills und relevante Fähigkeiten zu identifizieren.
+          - Hebe besondere Kenntnisse oder Soft Skills hervor, wenn sie zum Stellenprofil passen (z.B. Teamfähigkeit, Problemlösung, IT-Kenntnisse).
+          - Das Anschreiben soll persönlich, motiviert und individuell klingen.
+          - Eine positive und professionelle Tonalität ist gewünscht.
+          - Die Einleitung soll neugierig machen, der Hauptteil soll Argumente liefern, der Schlussteil soll freundlich und selbstbewusst abschließen.
           
-          Der Text soll höflich, professionell, authentisch und motiviert wirken.
+          Struktur des Anschreibens:
+          - Briefkopf (eigene Adresse, Datum, Empfängeradresse)
+          - Betreff (z.B. "Bewerbung als ${jobTitle}")
+          - Anrede ("Sehr geehrte Damen und Herren," oder Ansprechpartner falls bekannt)
+          - Hauptteil (Vorstellung, Bezug auf Stellenanzeige, Motivation, Bezug auf eigene Erfahrungen)
+          - Abschluss (Bereitschaft zu einem Gespräch, freundliche Grußformel)
+          - Name
+          
+          Los geht's!
         `;
+        
         
         
         
