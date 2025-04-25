@@ -25,10 +25,15 @@ async function fetchCompanyInfo(url) {
     const browser = await chromium.launch({ headless: true });
   
     const context = await browser.newContext({
-      userAgent:
-        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-      viewport: { width: 1280, height: 800 },
-    });
+        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        viewport: { width: 1280, height: 800 },
+        locale: 'de-DE', // Sprache auf Deutsch setzen
+        extraHTTPHeaders: {
+          'Accept-Language': 'de-DE,de;q=0.9,en;q=0.8'
+        }
+      });
+      
+      
   
     const page = await context.newPage();
     const visitedUrls = new Set();
@@ -40,6 +45,13 @@ async function fetchCompanyInfo(url) {
       await page.waitForTimeout(3000);
   
       const landingUrl = page.url();
+
+      if (!landingUrl.includes('/de/')) {
+            const deutschUrl = landingUrl.replace('/en/', '/de/');
+            console.log("🔁 Leite manuell auf die deutsche Version um:", deutschUrl);
+            await page.goto(deutschUrl, { waitUntil: 'networkidle', timeout: 15000 });
+        }
+
       const currentOrigin = new URL(landingUrl).origin;
   
       const links = await page.$$eval(
