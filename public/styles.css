@@ -118,6 +118,7 @@ button.btn-sm.btn-danger {
     display: flex;
     align-items: center; /* Icon und Text nebeneinander anordnen */
     gap: 5px;  /* Abstand zwischen Icon und Text */
+    margin-left: 50px; /*Abstand zum Textfeld links */
 }
 
 /* Hover-Effekt für Löschen-Buttons */

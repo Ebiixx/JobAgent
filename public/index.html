@@ -271,33 +271,38 @@ async function uploadCV(event) {
             renderExperienceList();
         }
 
+        // Schule
         if (json.education && Array.isArray(json.education)) {
             console.log("✏️ Schulbildung/Ausbildung gefunden:", json.education);
 
-            educationData = json.education.map(edu => ({
+            const newEducation = json.education.map(edu => ({
                 abschluss: edu.abschluss || '',
                 schulname: edu.schulname || '',
                 zeitraum: edu.zeitraum || ''
             }));
 
+            // Alte Daten beibehalten, neue hinzufügen
+            educationData = [...educationData, ...newEducation];
+
             renderEducationList();
+        }
 
-
-
-
-            }
-
-            if (json.internships && Array.isArray(json.internships)) {
+        // Praktika
+        if (json.internships && Array.isArray(json.internships)) {
             console.log("✏️ Praktika gefunden:", json.internships);
 
-            internshipData = json.internships.map(intern => ({
+            const newInternships = json.internships.map(intern => ({
                 praktikum: intern.praktikum || '',
                 zeitraum: intern.zeitraum || '',
                 unternehmen: intern.unternehmen || ''
             }));
 
+            // Alte Daten beibehalten, neue hinzufügen
+            internshipData = [...internshipData, ...newInternships];
+
             renderInternshipList();
         }
+
     
 
 
