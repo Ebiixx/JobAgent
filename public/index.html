@@ -111,7 +111,7 @@
                 </form>
             </div>
 
-            <!-- Resultat -->
+            <!-- Tab 3: KI Agent starten -->
             <div class="tab-pane fade" id="result" role="tabpanel">
                 <p>Wenn alle Angaben gemacht sind, kannst du den KI-Agenten starten:</p>
                 <button class="btn btn-success" onclick="startAgent()">🚀 Bewerbung erstellen lassen</button>
@@ -141,46 +141,48 @@
 
 
     async function startAgent() {
-      const data = {
+    const data = {
         name: document.getElementById('name').value,
         birthdate: document.getElementById('birthdate').value,
         address: document.getElementById('address').value,
-        experience: document.getElementById('experience').value,
         jobTitle: document.getElementById('jobTitle').value,
         company: document.getElementById('company').value,
-        companyUrl: document.getElementById('companyUrl').value,
+        companyUrl: document.getElementById('companyUrl').value,  // Unternehmens-URL
         jobDescription: document.getElementById('jobDescription').value,
-      };
+    };
 
-      const prompt = `
-        Ich bin ${data.name}, geboren am ${data.birthdate}, wohnhaft in ${data.address}.
-        Ich habe folgende berufliche Erfahrungen: ${data.experience}.
+    if (!data.companyUrl || !data.name || !data.birthdate || !data.address || !data.jobTitle || !data.company || !data.jobDescription) {
+        alert('Bitte fülle alle Felder aus.');
+        return;
+    }
 
-        Ich bewerbe mich als ${data.jobTitle} bei ${data.company}.
-        Die Stellenbeschreibung lautet: ${data.jobDescription}
-        Die Unternehmensseite ist: ${data.companyUrl}
-
-        Bitte formuliere ein professionelles Bewerbungsschreiben dafür.`;
-
-      document.getElementById('loading').style.display = 'inline';
-      document.getElementById('responseOutput').textContent = '';
-
-      try {
-        const res = await fetch('/api/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: prompt }),
+    // Anfrage an den Server senden
+    try {
+        const response = await fetch('/api/generate-cover-letter', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
         });
 
-        const result = await res.json();
-        document.getElementById('responseOutput').textContent = result.reply || 'Keine Antwort erhalten.';
-      } catch (err) {
-        document.getElementById('responseOutput').textContent = '❌ Fehler beim Starten des Agenten.';
-        console.error(err);
-      } finally {
-        document.getElementById('loading').style.display = 'none';
-      }
+        const result = await response.json();
+        if (response.ok) {
+            document.getElementById('responseOutput').textContent = result.coverLetter;
+        } else {
+            document.getElementById('responseOutput').textContent = result.error || 'Fehler bei der Generierung des Bewerbungsschreibens.';
+        }
+
+    } catch (error) {
+        document.getElementById('responseOutput').textContent = 'Fehler beim Senden der Anfrage.';
+        console.error(error);
     }
+}
+
+
+
+
+
 
 
 // Upload Funktion    
@@ -583,12 +585,6 @@ new Sortable(document.getElementById('internshipList'), {
     }
   }
 });
-
-
-
-
-
-
 
   </script>
 </body>
