@@ -51,12 +51,25 @@ app.post('/api/upload-cv', upload.single('cv'), async (req, res) => {
       const extractedText = pdfData.text;
   
       const aiPrompt = `
-  Extrahiere aus diesem Lebenslauf folgende Informationen und gib die Antwort als JSON zurück:
-  { "name": "", "birthdate": "", "address": "", "experience": [""] }
-  
-  Hier ist der Lebenslauftext:
-  """${extractedText}"""
-  `;
+      Extrahiere aus diesem Lebenslauf folgende Informationen und gib die Antwort bitte **nur als JSON-Objekt** zurück:
+      
+      {
+        "name": "",
+        "birthdate": "",
+        "address": "",
+        "experience": [
+          {
+            "tätigkeit": "",
+            "zeitraum": "",
+            "einrichtung": ""
+          }
+        ]
+      }
+      
+      Hier ist der Lebenslauftext:
+      """${extractedText}"""
+      `;
+      
   
       const aiResponse = await askOpenAI([
         { role: 'system', content: 'Du bist ein hilfreicher CV-Parser.' },

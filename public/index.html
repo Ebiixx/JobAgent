@@ -213,23 +213,23 @@ async function uploadCV(event) {
 
       // Berufserfahrungen
       if (json.experience && Array.isArray(json.experience)) {
-        console.log("✏️ Berufserfahrungen gefunden:", json.experience);
+        console.log("✏️ Strukturierte Berufserfahrungen gefunden:", json.experience);
 
-        const experienceList = document.getElementById('experienceList');
-        experienceList.innerHTML = ''; // Vorherige Einträge löschen
-
-        json.experience.forEach((exp, index) => {
-          const item = document.createElement('div');
-          item.className = 'list-group-item list-group-item-action mb-2 shadow-sm rounded';
-          item.innerHTML = `
-            <div class="d-flex w-100 justify-content-between align-items-center">
-              <h6 class="mb-1">Erfahrung ${index + 1}</h6>
-            </div>
-            <p class="mb-1">${exp}</p>
-          `;
-          experienceList.appendChild(item);
+        experienceData = json.experience.map(exp => {
+        if (typeof exp === 'string') {
+            return { tätigkeit: exp, zeitraum: '', einrichtung: '' };
+        }
+        return {
+            tätigkeit: exp.tätigkeit || '',
+            zeitraum: exp.zeitraum || '',
+            einrichtung: exp.einrichtung || ''
+        };
         });
-      }
+
+
+        renderExperienceList();
+        }
+
 
       status.textContent = '✅ Felder erfolgreich aus KI-Daten befüllt!';
     } else {
@@ -256,23 +256,40 @@ function renderExperienceList() {
 
   experienceData.forEach((exp, index) => {
     const item = document.createElement('div');
-    item.className = 'list-group-item mb-2 shadow-sm rounded';
+    item.className = 'list-group-item mb-3 shadow-sm rounded';
+
     item.innerHTML = `
-      <div class="d-flex justify-content-between align-items-center">
-        <div>
-          <h6 class="mb-1">Tätigkeit: ${exp.tätigkeit || ''}</h6>
-          <p class="mb-1">Zeitraum: ${exp.zeitraum || ''}</p>
-          <p class="mb-1">Einrichtung: ${exp.einrichtung || ''}</p>
+      <div class="row g-3 align-items-center">
+        <div class="col-md-4">
+          <label class="form-label">Tätigkeit</label>
+          <input type="text" class="form-control" value="${exp.tätigkeit || ''}" 
+            onchange="updateExperienceField(${index}, 'tätigkeit', this.value)">
         </div>
-        <div>
-          <button class="btn btn-sm btn-warning me-2" onclick="editExperience(${index})">✏️ Bearbeiten</button>
-          <button class="btn btn-sm btn-danger" onclick="deleteExperience(${index})">🗑️ Löschen</button>
+        <div class="col-md-4">
+          <label class="form-label">Zeitraum</label>
+          <input type="text" class="form-control" value="${exp.zeitraum || ''}" 
+            onchange="updateExperienceField(${index}, 'zeitraum', this.value)">
         </div>
+        <div class="col-md-4">
+          <label class="form-label">Einrichtung</label>
+          <input type="text" class="form-control" value="${exp.einrichtung || ''}" 
+            onchange="updateExperienceField(${index}, 'einrichtung', this.value)">
+        </div>
+      </div>
+      <div class="text-end mt-2">
+        <button class="btn btn-sm btn-danger" onclick="deleteExperience(${index})">🗑️ Löschen</button>
       </div>
     `;
     experienceList.appendChild(item);
   });
 }
+
+
+function updateExperienceField(index, field, value) {
+  experienceData[index][field] = value;
+  console.log(`📝 Erfahrung ${index} - Feld ${field} aktualisiert auf:`, value);
+}
+
 
 function deleteExperience(index) {
   if (confirm("Willst du diese Erfahrung wirklich löschen?")) {
@@ -280,6 +297,7 @@ function deleteExperience(index) {
     renderExperienceList();
   }
 }
+
 
 function editExperience(index) {
   const exp = experienceData[index];
@@ -295,15 +313,10 @@ function editExperience(index) {
 
 
 function addExperience() {
-  const tätigkeit = prompt("Neue Tätigkeit:");
-  const zeitraum = prompt("Zeitraum der Tätigkeit:");
-  const einrichtung = prompt("Einrichtung / Unternehmen:");
-
-  if (tätigkeit && zeitraum && einrichtung) {
-    experienceData.push({ tätigkeit, zeitraum, einrichtung });
-    renderExperienceList();
-  }
+  experienceData.push({ tätigkeit: '', zeitraum: '', einrichtung: '' });
+  renderExperienceList();
 }
+
 
 
 
