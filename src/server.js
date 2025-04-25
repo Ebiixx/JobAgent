@@ -22,70 +22,78 @@ app.use(express.static(path.join(__dirname, '../public')));
 
 
 async function fetchCompanyInfo(url) {
-      const browser = await chromium.launch({ headless: true });
-    
-      const context = await browser.newContext({
-        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        viewport: { width: 1280, height: 800 }
-      });
-    
-      const page = await context.newPage();
-      const visitedUrls = new Set();
-      const maxPages = 5;
-    
-      try {
-        console.log("📡 Scraping gestartet für:", url);
-        await page.goto(url, { waitUntil: 'networkidle', timeout: 30000 });
-        await page.waitForTimeout(3000);
-    
-        const landingUrl = page.url();
-        const currentOrigin = new URL(landingUrl).origin;
-    
-        const links = await page.$$eval('a[href]', (anchors, origin) => {
-          return anchors
-            .map(a => a.href)
-            .filter(href => href.startsWith(origin) && !href.includes('#'));
-        }, currentOrigin);
-    
-        const keywords = ['impressum', 'about', 'ueber', 'unternehmen', 'karriere', 'team', 'kontakt'];
-        const prioritizedLinks = links.filter(link =>
-          keywords.some(keyword => link.toLowerCase().includes(keyword))
-        );
-    
-        const targets = [...new Set([landingUrl, ...prioritizedLinks])].slice(0, maxPages);
-        console.log("🔗 Ziel-URLs:", targets);
-    
-        let fullText = '';
-    
-        for (const targetUrl of targets) {
-          if (visitedUrls.has(targetUrl)) continue;
-          try {
-            await page.goto(targetUrl, { waitUntil: 'networkidle', timeout: 15000 });
-            await page.waitForTimeout(2000);
-    
-            await page.evaluate(() => {
-              const cookie = document.querySelector('[id*="cookie"], .cookie-banner, .cc-window');
-              if (cookie) cookie.remove();
-            });
-    
-            const text = await page.evaluate(() => document.body.innerText);
-            fullText += `\n\n--- TEXT VON ${targetUrl} ---\n` + text.trim().replace(/\s+/g, ' ');
-            visitedUrls.add(targetUrl);
-          } catch (err) {
-            console.warn(`⚠️ Fehler beim Laden von ${targetUrl}:`, err.message);
-          }
-        }
-    
-        console.log("✅ Gesamttextlänge:", fullText.length);
-        return fullText.slice(0, 12000); // Begrenzung für OpenAI prompt
-      } catch (err) {
-        console.error('❌ Fehler beim Scrapen:', err.message);
-        return null;
-      } finally {
-        await browser.close();
-      }
+    const browser = await chromium.launch({ headless: true });
+  
+    const context = await browser.newContext({
+      userAgent:
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      viewport: { width: 1280, height: 800 },
+    });
+  
+    const page = await context.newPage();
+    const visitedUrls = new Set();
+    const maxPages = 5;
+  
+    try {
+      console.log('📡 Scraping gestartet für:', url);
+      await page.goto(url, { waitUntil: 'networkidle', timeout: 30000 });
+      await page.waitForTimeout(3000);
+  
+      const landingUrl = page.url();
+      const currentOrigin = new URL(landingUrl).origin;
+  
+      const links = await page.$$eval(
+        'a[href]',
+        (anchors, origin) => {
+          return anchors
+            .map((a) => a.href)
+            .filter((href) => href.startsWith(origin) && !href.includes('#'));
+        },
+        currentOrigin
+      );
+  
+      const keywords = [
+        'impressum', 'about', 'ueber', 'unternehmen', 'karriere', 'team', 'kontakt', // deutsch
+        'company', 'careers', 'contact', 'team', 'imprint', 'legal', 'privacy'       // englisch
+      ];
+      
+      const prioritizedLinks = links.filter((link) =>
+        keywords.some((keyword) => link.toLowerCase().includes(keyword))
+      );
+  
+      const targets = [...new Set([landingUrl, ...prioritizedLinks])].slice(0, maxPages);
+      console.log('🔗 Ziel-URLs:', targets);
+  
+      let fullText = '';
+  
+      for (const targetUrl of targets) {
+        if (visitedUrls.has(targetUrl)) continue;
+        try {
+          await page.goto(targetUrl, { waitUntil: 'networkidle', timeout: 15000 });
+          await page.waitForTimeout(2000);
+  
+          await page.evaluate(() => {
+            const cookie = document.querySelector('[id*="cookie"], .cookie-banner, .cc-window');
+            if (cookie) cookie.remove();
+          });
+  
+          const text = await page.evaluate(() => document.body.innerText);
+          fullText += `\n\n--- TEXT VON ${targetUrl} ---\n` + text.trim().replace(/\s+/g, ' ');
+          visitedUrls.add(targetUrl);
+        } catch (err) {
+          console.warn(`⚠️ Fehler beim Laden von ${targetUrl}:`, err.message);
+        }
+      }
+  
+      console.log('✅ Gesamttextlänge:', fullText.length);
+      return fullText.slice(0, 12000); // OpenAI Token Limit
+    } catch (err) {
+      console.error('❌ Fehler beim Scrapen:', err.message);
+      return null;
+    } finally {
+      await browser.close();
     }
-    
+  }
   
   
   
@@ -94,17 +102,20 @@ async function fetchCompanyInfo(url) {
 // Funktion zum Analysieren des Unternehmensinhalts mit OpenAI
 async function analyzeCompanyContent(visibleText) {
     const prompt = `
-        Du bist ein intelligenter Assistent, der Informationen aus Texten extrahiert. 
-        Bitte analysiere den folgenden Text einer Unternehmenswebseite und extrahiere:
-        - Unternehmensname
-        - Unternehmensbeschreibung
-        - Unternehmensstandort
-        - Tätigkeitsbereich oder Branche
-        - Größe oder andere relevante Infos
-
-        Text:
-        """${visibleText}"""
+    Du bist ein intelligenter Assistent, der Informationen aus Texten extrahiert. 
+    Bitte analysiere den folgenden Text einer Unternehmenswebseite und extrahiere:
+    
+    - Unternehmensname
+    - Unternehmensbeschreibung
+    - **Postanschrift (Adresse)** – bitte vollständig mit Straße, PLZ, Ort und Land, falls vorhanden
+    - Unternehmensstandort (z. B. Stadt, Land, Hauptsitz)
+    - Tätigkeitsbereich oder Branche
+    - Größe oder andere relevante Infos
+    
+    Text:
+    """${visibleText}"""
     `;
+    
 
     try {
         const aiResponse = await askOpenAI([
