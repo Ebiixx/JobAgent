@@ -44,8 +44,8 @@
           </div>
           <div class="mb-3">
             <label class="form-label">Berufserfahrung</label>
-            <textarea class="form-control" id="experience" rows="3" placeholder="z. B. Projektmanager bei Firma X von 2019–2023..."></textarea>
-          </div>
+            <div id="experienceList" class="list-group"></div>
+          </div>      
           <div class="mb-3">
             <label class="form-label">Lebenslauf (PDF)</label>
             <input type="file" class="form-control" id="cvUpload" accept=".pdf" />
@@ -186,16 +186,40 @@ Bitte formuliere ein professionelles Bewerbungsschreiben dafür.`;
       }
       if (json.birthdate) {
         console.log("✏️ Geburtsdatum gefunden:", json.birthdate);
-        document.getElementById('birthdate').value = json.birthdate;
-      }
+
+        // Umwandlung DD.MM.YYYY ➔ YYYY-MM-DD
+        const parts = json.birthdate.split('.');
+        if (parts.length === 3) {
+            const formattedDate = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+            document.getElementById('birthdate').value = formattedDate;
+        } else {
+            console.warn("⚠️ Geburtsdatum konnte nicht umformatiert werden:", json.birthdate);
+        }
+        }
+
       if (json.address) {
         console.log("✏️ Adresse gefunden:", json.address);
         document.getElementById('address').value = json.address;
       }
       if (json.experience && Array.isArray(json.experience)) {
         console.log("✏️ Berufserfahrung gefunden:", json.experience);
-        document.getElementById('experience').value = json.experience.join("\n");
-      }
+
+        const experienceList = document.getElementById('experienceList');
+        experienceList.innerHTML = ''; // Vorherige Einträge löschen
+
+        json.experience.forEach((exp, index) => {
+            const item = document.createElement('div');
+            item.className = 'list-group-item list-group-item-action mb-2 shadow-sm rounded';
+            item.innerHTML = `
+            <div class="d-flex w-100 justify-content-between">
+                <h6 class="mb-1">Erfahrung ${index + 1}</h6>
+            </div>
+            <p class="mb-1">${exp}</p>
+            `;
+            experienceList.appendChild(item);
+        });
+        }
+
 
       status.textContent = '✅ Felder erfolgreich aus KI-Daten befüllt!';
     } else {
