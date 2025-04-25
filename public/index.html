@@ -1,131 +1,153 @@
 <!DOCTYPE html>
 <html lang="de">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>JobAgent</title>
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
-        <!-- Verlinkung der externen CSS-Datei -->
-        <link rel="stylesheet" href="styles.css" />
-    </head>
-    
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JobAgent</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
 <body class="bg-light">
+<div class="container py-5">
+  <h1 class="mb-4 text-center">📄 JobAgent – Bewerbungshelfer</h1>
 
-    <div class="container py-5">
-        <h1 class="mb-4 text-center">📄 JobAgent – Bewerbungshelfer</h1>
+  <!-- Tabs -->
+  <ul class="nav nav-tabs mb-3" id="formTabs" role="tablist">
+    <li class="nav-item">
+      <button class="nav-link active" id="personal-tab" data-bs-toggle="tab" data-bs-target="#personal" type="button" role="tab">1. Persönliche Daten</button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link" id="job-tab" data-bs-toggle="tab" data-bs-target="#job" type="button" role="tab">2. Job & Arbeitgeber</button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link" id="result-tab" data-bs-toggle="tab" data-bs-target="#result" type="button" role="tab">3. KI Agent starten</button>
+    </li>
+  </ul>
 
-        <!-- Tabs -->
-        <ul class="nav nav-tabs mb-3" id="formTabs" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="personal-tab" data-bs-toggle="tab" data-bs-target="#personal" type="button" role="tab">1. Persönliche Daten</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="job-tab" data-bs-toggle="tab" data-bs-target="#job" type="button" role="tab">2. Job & Arbeitgeber</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="result-tab" data-bs-toggle="tab" data-bs-target="#result" type="button" role="tab">3. KI Agent starten</button>
-            </li>
-        </ul>
+  <!-- Tab Inhalte -->
+  <div class="tab-content" id="formTabsContent">
 
-        <!-- Tab-Inhalte -->
-        <div class="tab-content" id="formTabsContent">
+    <!-- Persönliche Daten -->
+    <div class="tab-pane fade show active" id="personal" role="tabpanel">
+      <form id="formPersonal">
 
-            <!-- Persönliche Daten -->
-            <div class="tab-pane fade show active" id="personal" role="tabpanel">
-                <form id="formPersonal">
-                    <div class="mb-3">
-                        <label class="form-label">Name</label>
-                        <input type="text" class="form-control" id="name" placeholder="Max Mustermann" />
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Geburtsdatum</label>
-                        <input type="date" class="form-control" id="birthdate" />
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Adresse</label>
-                        <input type="text" class="form-control" id="address" />
-                    </div>
-
-                    <!-- Schulbildung / Ausbildung -->
-                    <div class="mb-3">
-                        <div id="educationContainer" class="list-group mb-3">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <label class="form-label">Schulbildung / Ausbildung</label>
-                                <button type="button" class="btn btn-primary" onclick="addEducation()">➕ Neue Schulbildung/Ausbildung hinzufügen</button>
-                            </div>
-                            <div id="educationList" class="list-group mb-3"></div>
-                        </div>
-                    </div>
-
-                    <!-- Berufserfahrung -->
-                    <div class="mb-3">
-                        <div id="experienceContainer" class="list-group mb-3">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <label class="form-label">Berufserfahrung</label>
-                                <button type="button" class="btn btn-primary" onclick="addExperience()">➕ Neue Erfahrung hinzufügen</button>
-                            </div>
-                            <div id="experienceList" class="list-group mb-3"></div>
-                        </div>
-                    </div>
-
-                    <!-- Praktika -->
-                    <div class="mb-3">
-                        <div id="internshipContainer" class="list-group mb-3">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <label class="form-label">Praktika</label>
-                                <button type="button" class="btn btn-primary" onclick="addInternship()">➕ Neues Praktikum hinzufügen</button>
-                            </div>
-                            <div id="internshipList" class="list-group mb-3"></div>
-                        </div>
-                    </div>
-
-                    <!-- PDF Upload nur für Tab 1 -->
-                    <div class="mb-3">
-                        <label class="form-label">Lebenslauf (PDF)</label>
-                        <input type="file" class="form-control" id="cvUpload" accept=".pdf" />
-                        <button type="button" class="btn btn-secondary mt-2" onclick="uploadCV(event)">📤 PDF auslesen</button>
-                        <div id="uploadStatus" class="form-text text-muted mt-1" style="display: none;">⏳ Wird analysiert...</div>
-                    </div>
-                </form>
-            </div>
-
-            <!-- Job & Arbeitgeber -->
-            <div class="tab-pane fade" id="job" role="tabpanel">
-                <form id="formJob">
-                    <div class="mb-3">
-                        <label class="form-label">Stellenbezeichnung</label>
-                        <input type="text" class="form-control" id="jobTitle" placeholder="z. B. Softwareentwickler (m/w/d)" />
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Unternehmen</label>
-                        <input type="text" class="form-control" id="company" placeholder="z. B. Acme GmbH" />
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Unternehmens-Website</label>
-                        <input type="url" class="form-control" id="companyUrl" placeholder="https://..." />
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Stellenbeschreibung</label>
-                        <textarea class="form-control" id="jobDescription" rows="3"></textarea>
-                    </div>
-                </form>
-            </div>
-
-            <!-- Tab 3: KI Agent starten -->
-            <div class="tab-pane fade" id="result" role="tabpanel">
-                <p>Wenn alle Angaben gemacht sind, kannst du den KI-Agenten starten:</p>
-                <button class="btn btn-success" onclick="startAgent()">🚀 Bewerbung erstellen lassen</button>
-                <span id="loading" class="ms-3 text-muted" style="display: none;">⏳ Agent arbeitet...</span>
-
-                <div class="mt-4">
-                    <h5>Antwort:</h5>
-                    <div id="responseOutput" class="bg-white p-3 rounded border" style="white-space: pre-line;"></div>
-                </div>
-                <button class="btn btn-outline-secondary mb-3" onclick="copyLetter()">📋 In Zwischenablage</button>
-
-            </div>
+        <!-- Standardfelder -->
+        <div class="mb-3">
+          <label class="form-label">Name</label>
+          <input type="text" class="form-control" id="name" placeholder="Max Mustermann" />
         </div>
+
+        <div class="mb-3">
+          <label class="form-label">Geburtsdatum</label>
+          <input type="date" class="form-control" id="birthdate" />
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Adresse</label>
+          <input type="text" class="form-control" id="address" />
+        </div>
+
+        <!-- NEU: Telefon -->
+        <div class="mb-3">
+          <label class="form-label">Telefonnummer</label>
+          <input type="text" class="form-control" id="phone" placeholder="+49 170 1234567" />
+        </div>
+
+        <!-- NEU: E-Mail -->
+        <div class="mb-3">
+          <label class="form-label">E-Mail-Adresse</label>
+          <input type="email" class="form-control" id="email" placeholder="max@example.com" />
+        </div>
+
+        <!-- NEU: LinkedIn -->
+        <div class="mb-3">
+          <label class="form-label">LinkedIn Profil (optional)</label>
+          <input type="url" class="form-control" id="linkedin" placeholder="https://linkedin.com/in/username" />
+        </div>
+
+        <!-- Berufserfahrung -->
+        <div class="mb-3">
+          <div id="experienceContainer" class="list-group mb-3">
+            <div class="d-flex justify-content-between align-items-center">
+              <label class="form-label">Berufserfahrung</label>
+              <button type="button" class="btn btn-primary" onclick="addExperience()">➕ Neue Erfahrung</button>
+            </div>
+            <div id="experienceList" class="list-group mb-3"></div>
+          </div>
+        </div>
+
+        <!-- Schulbildung -->
+        <div class="mb-3">
+          <div id="educationContainer" class="list-group mb-3">
+            <div class="d-flex justify-content-between align-items-center">
+              <label class="form-label">Schulbildung / Ausbildung</label>
+              <button type="button" class="btn btn-primary" onclick="addEducation()">➕ Neue Ausbildung</button>
+            </div>
+            <div id="educationList" class="list-group mb-3"></div>
+          </div>
+        </div>
+
+        <!-- Praktika -->
+        <div class="mb-3">
+          <div id="internshipContainer" class="list-group mb-3">
+            <div class="d-flex justify-content-between align-items-center">
+              <label class="form-label">Praktika</label>
+              <button type="button" class="btn btn-primary" onclick="addInternship()">➕ Neues Praktikum</button>
+            </div>
+            <div id="internshipList" class="list-group mb-3"></div>
+          </div>
+        </div>
+
+        <!-- Lebenslauf-Upload -->
+        <div class="mb-3">
+          <label class="form-label">Lebenslauf (PDF)</label>
+          <input type="file" class="form-control" id="cvUpload" accept=".pdf" />
+          <button type="button" class="btn btn-secondary mt-2" onclick="uploadCV(event)">📤 PDF auslesen</button>
+          <div id="uploadStatus" class="form-text text-muted mt-1" style="display: none;">⏳ Wird analysiert...</div>
+        </div>
+
+      </form>
     </div>
+
+    <!-- Job & Arbeitgeber -->
+    <div class="tab-pane fade" id="job" role="tabpanel">
+      <form id="formJob">
+        <div class="mb-3">
+          <label class="form-label">Stellenbezeichnung</label>
+          <input type="text" class="form-control" id="jobTitle" placeholder="z.B. Softwareentwickler (m/w/d)" />
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Unternehmen</label>
+          <input type="text" class="form-control" id="company" placeholder="z.B. Cloudflight GmbH" />
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Unternehmens-Website</label>
+          <input type="url" class="form-control" id="companyUrl" placeholder="https://..." />
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Stellenbeschreibung</label>
+          <textarea class="form-control" id="jobDescription" rows="3"></textarea>
+        </div>
+      </form>
+    </div>
+
+    <!-- Ergebnis -->
+    <div class="tab-pane fade" id="result" role="tabpanel">
+      <p>Wenn alles ausgefüllt ist, kannst du starten:</p>
+      <button class="btn btn-success" onclick="startAgent()">🚀 Bewerbung erstellen lassen</button>
+      <span id="loading" class="ms-3 text-muted" style="display: none;">⏳ Agent arbeitet...</span>
+
+      <div class="mt-4">
+        <h5>Antwort:</h5>
+        <div id="responseOutput" class="bg-white p-3 rounded border" style="white-space: pre-line;"></div>
+      </div>
+
+      <button class="btn btn-outline-secondary mb-3" onclick="copyLetter()">📋 In Zwischenablage</button>
+    </div>
+
+  </div>
+</div>
 
   <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -147,31 +169,31 @@
         name: document.getElementById('name').value,
         birthdate: document.getElementById('birthdate').value,
         address: document.getElementById('address').value,
+        phone: document.getElementById('phone').value,
+        email: document.getElementById('email').value,
+        linkedin: document.getElementById('linkedin').value,
         jobTitle: document.getElementById('jobTitle').value,
         company: document.getElementById('company').value,
-        companyUrl: document.getElementById('companyUrl').value,  // Unternehmens-URL
+        companyUrl: document.getElementById('companyUrl').value,
         jobDescription: document.getElementById('jobDescription').value,
     };
 
     if (!data.companyUrl || !data.name || !data.birthdate || !data.address || !data.jobTitle || !data.company || !data.jobDescription) {
-        alert('Bitte fülle alle Felder aus.');
+        alert('Bitte fülle alle Pflichtfelder aus.');
         return;
     }
 
-    // Anfrage an den Server senden
     try {
-// In deinem Frontend-Code
-const controller = new AbortController();
-const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 Sek
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 Sek Timeout
 
-const response = await fetch('/api/generate-cover-letter', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify(data),
-  signal: controller.signal
-});
-clearTimeout(timeoutId);
-
+        const response = await fetch('/api/generate-cover-letter', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data),
+            signal: controller.signal
+        });
+        clearTimeout(timeoutId);
 
         const result = await response.json();
         if (response.ok) {
@@ -179,12 +201,12 @@ clearTimeout(timeoutId);
         } else {
             document.getElementById('responseOutput').textContent = result.error || 'Fehler bei der Generierung des Bewerbungsschreibens.';
         }
-
     } catch (error) {
         document.getElementById('responseOutput').textContent = 'Fehler beim Senden der Anfrage.';
         console.error(error);
     }
 }
+
 
 
 
@@ -257,6 +279,25 @@ async function uploadCV(event) {
         console.log("✏️ Adresse gefunden:", json.address);
         document.getElementById('address').value = json.address;
       }
+
+      // Telefon
+      if (json.phone) {
+        console.log("✏️ Telefon gefunden:", json.phone);
+        document.getElementById('phone').value = json.phone;
+      }
+
+      // E-Mail
+      if (json.email) {
+        console.log("✏️ E-Mail gefunden:", json.email);
+        document.getElementById('email').value = json.email;
+      }
+
+      // LinkedIn
+      if (json.linkedin) {
+        console.log("✏️ LinkedIn gefunden:", json.linkedin);
+        document.getElementById('linkedin').value = json.linkedin;
+      }
+
 
       // Berufserfahrungen
       if (json.experience && Array.isArray(json.experience)) {

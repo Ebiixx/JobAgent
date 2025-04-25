@@ -181,37 +181,41 @@ app.post('/api/upload-cv', upload.single('cv'), async (req, res) => {
 
         const aiPrompt = `
             Extrahiere aus diesem Lebenslauf folgende Informationen und gib die Antwort bitte **nur als JSON-Objekt** zurück:
-            
+
             {
-                "name": "",
-                "birthdate": "",
-                "address": "",
-                "experience": [
+              "name": "",
+              "birthdate": "",
+              "address": "",
+              "phone": "",
+              "email": "",
+              "linkedin": "",
+              "experience": [
                 {
-                    "tätigkeit": "",
-                    "zeitraum": "",
-                    "einrichtung": ""
+                  "tätigkeit": "",
+                  "zeitraum": "",
+                  "einrichtung": ""
                 }
-                ],
-                "education": [
+              ],
+              "education": [
                 {
-                    "abschluss": "",
-                    "schulname": "",
-                    "zeitraum": ""
+                  "abschluss": "",
+                  "schulname": "",
+                  "zeitraum": ""
                 }
-                ],
-                "internships": [
+              ],
+              "internships": [
                 {
-                    "praktikum": "",
-                    "zeitraum": "",
-                    "unternehmen": ""
+                  "praktikum": "",
+                  "zeitraum": "",
+                  "unternehmen": ""
                 }
-                ]
+              ]
             }
-            
+
             Hier ist der Lebenslauftext:
             """${extractedText}"""
-        `;
+          `;
+
 
         const aiResponse = await askOpenAI([
             { role: 'system', content: 'Du bist ein hilfreicher CV-Parser.' },
@@ -255,7 +259,8 @@ app.post('/api/upload-cv', upload.single('cv'), async (req, res) => {
 
 // POST-Route für die Verarbeitung der Unternehmens-URL und das Erstellen des Bewerbungsschreibens
 app.post('/api/generate-cover-letter', async (req, res) => {
-    const { companyUrl, name, birthdate, address, jobTitle, company, jobDescription } = req.body;
+  const { companyUrl, name, birthdate, address, phone, email, linkedin, jobTitle, company, jobDescription } = req.body;
+
 
     if (!companyUrl || !name || !birthdate || !address || !jobTitle || !company || !jobDescription) {
         return res.status(400).json({ error: 'Alle Formularfelder müssen ausgefüllt werden.' });
@@ -277,15 +282,17 @@ app.post('/api/generate-cover-letter', async (req, res) => {
         // 3. Bewerbungsschreiben erstellen
         const prompt = `
             Ich bin ${name}, geboren am ${birthdate}, wohnhaft in ${address}.
+            Meine Telefonnummer ist ${phone}, meine E-Mail-Adresse ist ${email}${linkedin ? `, mein LinkedIn-Profil ist ${linkedin}` : ''}.
             Ich bewerbe mich als ${jobTitle} bei ${company}.
             Die Stellenbeschreibung lautet: ${jobDescription}.
             Unternehmensseite: ${companyUrl}.
-
+            
             Unternehmensinformationen:
             ${companyInfo}
-
-            Bitte formuliere ein Bewerbungsschreiben für mich.
+            
+            Bitte formuliere ein vollständiges und professionelles Bewerbungsschreiben basierend auf diesen Informationen.
         `;
+        
 
         const aiResponse = await askOpenAI([
             { role: 'system', content: 'Du bist ein hilfreicher Assistent, der Bewerbungsschreiben erstellt.' },
