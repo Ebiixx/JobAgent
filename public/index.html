@@ -165,52 +165,53 @@
     let internshipData = [];
 
 
-    async function startAgent() {
+  async function startAgent() {
     const data = {
-        name: document.getElementById('name').value,
-        birthdate: document.getElementById('birthdate').value,
-        address: document.getElementById('address').value,
-        phone: document.getElementById('phone').value,
-        email: document.getElementById('email').value,
-        linkedin: document.getElementById('linkedin').value,
-        jobTitle: document.getElementById('jobTitle').value,
-        company: document.getElementById('company').value,
-        companyUrl: document.getElementById('companyUrl').value,
-        jobDescription: document.getElementById('jobDescription').value,
+      name: document.getElementById('name').value,
+      birthdate: document.getElementById('birthdate').value,
+      address: document.getElementById('address').value,
+      phone: document.getElementById('phone').value,
+      email: document.getElementById('email').value,
+      linkedin: document.getElementById('linkedin').value,
+      jobTitle: document.getElementById('jobTitle').value,
+      company: document.getElementById('company').value,
+      companyUrl: document.getElementById('companyUrl').value,
+      jobDescription: document.getElementById('jobDescription').value,
+
+      // ➡️ Diese drei neuen Felder hinzufügen:
+      experienceData: experienceData,
+      educationData: educationData,
+      internshipData: internshipData,
     };
 
     if (!data.companyUrl || !data.name || !data.birthdate || !data.address || !data.jobTitle || !data.company || !data.jobDescription) {
-        alert('Bitte fülle alle Pflichtfelder aus.');
-        return;
+      alert('Bitte fülle alle Pflichtfelder aus.');
+      return;
     }
 
     try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 Sek Timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 Sek Timeout
 
-        const response = await fetch('/api/generate-cover-letter', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data),
-            signal: controller.signal
-        });
-        clearTimeout(timeoutId);
+      const response = await fetch('/api/generate-cover-letter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
 
-        const result = await response.json();
-        if (response.ok) {
-            document.getElementById('responseOutput').innerHTML = formatLetter(result.coverLetter);
-        } else {
-            document.getElementById('responseOutput').textContent = result.error || 'Fehler bei der Generierung des Bewerbungsschreibens.';
-        }
+      const result = await response.json();
+      if (response.ok) {
+        document.getElementById('responseOutput').innerHTML = formatLetter(result.coverLetter);
+      } else {
+        document.getElementById('responseOutput').textContent = result.error || 'Fehler bei der Generierung des Bewerbungsschreibens.';
+      }
     } catch (error) {
-        document.getElementById('responseOutput').textContent = 'Fehler beim Senden der Anfrage.';
-        console.error(error);
+      document.getElementById('responseOutput').textContent = 'Fehler beim Senden der Anfrage.';
+      console.error(error);
     }
-}
-
-
-
-
+  }
 
 
 

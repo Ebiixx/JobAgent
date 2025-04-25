@@ -259,7 +259,12 @@ app.post('/api/upload-cv', upload.single('cv'), async (req, res) => {
 
 // POST-Route für die Verarbeitung der Unternehmens-URL und das Erstellen des Bewerbungsschreibens
 app.post('/api/generate-cover-letter', async (req, res) => {
-  const { companyUrl, name, birthdate, address, phone, email, linkedin, jobTitle, company, jobDescription } = req.body;
+  const { 
+    companyUrl, name, birthdate, address, phone, email, linkedin, 
+    jobTitle, company, jobDescription, 
+    experienceData, educationData, internshipData
+  } = req.body;
+  
 
 
     if (!companyUrl || !name || !birthdate || !address || !jobTitle || !company || !jobDescription) {
@@ -287,8 +292,14 @@ app.post('/api/generate-cover-letter', async (req, res) => {
           Die Stellenbeschreibung lautet: ${jobDescription}.
           Unternehmensseite: ${companyUrl}.
           
-          Unternehmensinformationen:
-          ${companyInfo}
+          Meine wichtigsten beruflichen Erfahrungen:
+          ${experienceData.map(exp => `- ${exp.tätigkeit} bei ${exp.einrichtung} (${exp.zeitraum})`).join('\n')}
+          
+          Meine absolvierte Schulbildung / Ausbildung:
+          ${educationData.map(edu => `- ${edu.abschluss} an der ${edu.schulname} (${edu.zeitraum})`).join('\n')}
+          
+          Meine Praktika:
+          ${internshipData.map(intern => `- ${intern.praktikum} bei ${intern.unternehmen} (${intern.zeitraum})`).join('\n')}
           
           Bitte formuliere daraus ein vollständiges, professionelles Bewerbungsschreiben.
           
@@ -296,20 +307,21 @@ app.post('/api/generate-cover-letter', async (req, res) => {
           - Keine Markdown-Formatierungen wie **Fettdruck**, *Kursiv* oder Überschriften (#).
           - Keine Emojis oder Sonderzeichen verwenden.
           - Gib den Text bitte nur als reinen Fließtext mit normalen Absätzen zurück.
-          - Stellen die noch manuell geändert oder hinzugefügt werden müssen sollten auch hervorgehoben werden, am besten **Fettdruck**
-
+          - Stellen, die noch manuell geändert oder individuell ergänzt werden müssen, sollen bitte **fett hervorgehoben** sein (durch **Sternchen**).
+          
           Struktur:
           - Oben Name und Adresse (klassisch wie in einem Briefkopf)
-          - Datum (automatisch [heutiges Datum])
+          - Datum (heutiges Datum automatisch)
           - Empfängeradresse
           - Betreffzeile (Betreff: Bewerbung als XYZ)
           - Anrede (Sehr geehrte Damen und Herren,)
-          - Fließtext (Vorstellung, Motivation, Abschluss)
+          - Fließtext (Vorstellung, Bezug auf Erfahrung, Motivation, Bezug auf Unternehmen)
           - Freundliche Grußformel
           - Name unter der Grußformel
           
-          Der Text soll einen höflichen, professionellen Stil haben und gut lesbar sein.
+          Der Text soll höflich, professionell, authentisch und motiviert wirken.
         `;
+        
         
         
 
