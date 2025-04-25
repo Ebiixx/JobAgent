@@ -44,8 +44,9 @@
           </div>
           <div class="mb-3">
             <label class="form-label">Berufserfahrung</label>
-            <div id="experienceList" class="list-group"></div>
-          </div>      
+            <div id="experienceList" class="list-group mb-3"></div>
+            <button class="btn btn-primary" onclick="addExperience()">➕ Neue Erfahrung hinzufügen</button>
+          </div>             
           <div class="mb-3">
             <label class="form-label">Lebenslauf (PDF)</label>
             <input type="file" class="form-control" id="cvUpload" accept=".pdf" />
@@ -96,6 +97,11 @@
 
   <!-- Custom Script -->
   <script>
+
+    let experienceData = [];
+
+
+
     async function startAgent() {
       const data = {
         name: document.getElementById('name').value,
@@ -138,8 +144,10 @@ Bitte formuliere ein professionelles Bewerbungsschreiben dafür.`;
       }
     }
 
-    async function uploadCV(event) {
-  event.preventDefault(); // <<< WICHTIG!! Verhindert das Neuladen
+
+// Upload Funktion    
+async function uploadCV(event) {
+  event.preventDefault(); // Verhindert Neuladen der Seite
 
   const fileInput = document.getElementById('cvUpload');
   const status = document.getElementById('uploadStatus');
@@ -174,52 +182,54 @@ Bitte formuliere ein professionelles Bewerbungsschreiben dafür.`;
     await delay(500); // kleine Pause, damit Status sichtbar bleibt
 
     const json = data.extracted;
-
     console.log("✅ Verarbeitetes JSON:", json);
 
     if (json) {
       console.log("➡️ Versuche, Felder zu befüllen...");
 
+      // Name
       if (json.name) {
         console.log("✏️ Name gefunden:", json.name);
         document.getElementById('name').value = json.name;
       }
+
+      // Geburtsdatum (Konvertierung DD.MM.YYYY ➔ YYYY-MM-DD)
       if (json.birthdate) {
         console.log("✏️ Geburtsdatum gefunden:", json.birthdate);
-
-        // Umwandlung DD.MM.YYYY ➔ YYYY-MM-DD
         const parts = json.birthdate.split('.');
         if (parts.length === 3) {
-            const formattedDate = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
-            document.getElementById('birthdate').value = formattedDate;
+          const formattedDate = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+          document.getElementById('birthdate').value = formattedDate;
         } else {
-            console.warn("⚠️ Geburtsdatum konnte nicht umformatiert werden:", json.birthdate);
+          console.warn("⚠️ Geburtsdatum konnte nicht umformatiert werden:", json.birthdate);
         }
-        }
+      }
 
+      // Adresse
       if (json.address) {
         console.log("✏️ Adresse gefunden:", json.address);
         document.getElementById('address').value = json.address;
       }
+
+      // Berufserfahrungen
       if (json.experience && Array.isArray(json.experience)) {
-        console.log("✏️ Berufserfahrung gefunden:", json.experience);
+        console.log("✏️ Berufserfahrungen gefunden:", json.experience);
 
         const experienceList = document.getElementById('experienceList');
         experienceList.innerHTML = ''; // Vorherige Einträge löschen
 
         json.experience.forEach((exp, index) => {
-            const item = document.createElement('div');
-            item.className = 'list-group-item list-group-item-action mb-2 shadow-sm rounded';
-            item.innerHTML = `
-            <div class="d-flex w-100 justify-content-between">
-                <h6 class="mb-1">Erfahrung ${index + 1}</h6>
+          const item = document.createElement('div');
+          item.className = 'list-group-item list-group-item-action mb-2 shadow-sm rounded';
+          item.innerHTML = `
+            <div class="d-flex w-100 justify-content-between align-items-center">
+              <h6 class="mb-1">Erfahrung ${index + 1}</h6>
             </div>
             <p class="mb-1">${exp}</p>
-            `;
-            experienceList.appendChild(item);
+          `;
+          experienceList.appendChild(item);
         });
-        }
-
+      }
 
       status.textContent = '✅ Felder erfolgreich aus KI-Daten befüllt!';
     } else {
@@ -240,13 +250,61 @@ function delay(ms) {
 }
 
 
+function renderExperienceList() {
+  const experienceList = document.getElementById('experienceList');
+  experienceList.innerHTML = '';
 
-
-
-// Hilfsfunktion für Delay
-function delay(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  experienceData.forEach((exp, index) => {
+    const item = document.createElement('div');
+    item.className = 'list-group-item mb-2 shadow-sm rounded';
+    item.innerHTML = `
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <h6 class="mb-1">Tätigkeit: ${exp.tätigkeit || ''}</h6>
+          <p class="mb-1">Zeitraum: ${exp.zeitraum || ''}</p>
+          <p class="mb-1">Einrichtung: ${exp.einrichtung || ''}</p>
+        </div>
+        <div>
+          <button class="btn btn-sm btn-warning me-2" onclick="editExperience(${index})">✏️ Bearbeiten</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteExperience(${index})">🗑️ Löschen</button>
+        </div>
+      </div>
+    `;
+    experienceList.appendChild(item);
+  });
 }
+
+function deleteExperience(index) {
+  if (confirm("Willst du diese Erfahrung wirklich löschen?")) {
+    experienceData.splice(index, 1);
+    renderExperienceList();
+  }
+}
+
+function editExperience(index) {
+  const exp = experienceData[index];
+  const tätigkeit = prompt("Tätigkeit bearbeiten:", exp.tätigkeit || '');
+  const zeitraum = prompt("Zeitraum bearbeiten:", exp.zeitraum || '');
+  const einrichtung = prompt("Einrichtung bearbeiten:", exp.einrichtung || '');
+
+  if (tätigkeit !== null && zeitraum !== null && einrichtung !== null) {
+    experienceData[index] = { tätigkeit, zeitraum, einrichtung };
+    renderExperienceList();
+  }
+}
+
+
+function addExperience() {
+  const tätigkeit = prompt("Neue Tätigkeit:");
+  const zeitraum = prompt("Zeitraum der Tätigkeit:");
+  const einrichtung = prompt("Einrichtung / Unternehmen:");
+
+  if (tätigkeit && zeitraum && einrichtung) {
+    experienceData.push({ tätigkeit, zeitraum, einrichtung });
+    renderExperienceList();
+  }
+}
+
 
 
   </script>
