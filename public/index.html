@@ -45,7 +45,7 @@
           <div class="mb-3">
             <label class="form-label">Berufserfahrung</label>
             <div id="experienceList" class="list-group mb-3"></div>
-            <button class="btn btn-primary" onclick="addExperience()">➕ Neue Erfahrung hinzufügen</button>
+            <button type="button" class="btn btn-primary" onclick="addExperience()">➕ Neue Erfahrung hinzufügen</button>
           </div>             
           <div class="mb-3">
             <label class="form-label">Lebenslauf (PDF)</label>
@@ -215,19 +215,21 @@ async function uploadCV(event) {
       if (json.experience && Array.isArray(json.experience)) {
         console.log("✏️ Strukturierte Berufserfahrungen gefunden:", json.experience);
 
-        experienceData = json.experience.map(exp => {
-        if (typeof exp === 'string') {
-            return { tätigkeit: exp, zeitraum: '', einrichtung: '' };
-        }
-        return {
-            tätigkeit: exp.tätigkeit || '',
-            zeitraum: exp.zeitraum || '',
-            einrichtung: exp.einrichtung || ''
-        };
-        });
+        const newExperiences = json.experience.map(exp => {
+            if (typeof exp === 'string') {
+                return { tätigkeit: exp, zeitraum: '', einrichtung: '' };
+            }
+            return {
+                tätigkeit: exp.tätigkeit || '',
+                zeitraum: exp.zeitraum || '',
+                einrichtung: exp.einrichtung || ''
+            };
+            });
 
+            // Alte Daten beibehalten, neue hinzufügen
+            experienceData = [...experienceData, ...newExperiences];
 
-        renderExperienceList();
+            renderExperienceList();
         }
 
 
