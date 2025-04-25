@@ -119,8 +119,10 @@
 
                 <div class="mt-4">
                     <h5>Antwort:</h5>
-                    <pre id="responseOutput" class="bg-white p-3 rounded border text-wrap"></pre>
+                    <div id="responseOutput" class="bg-white p-3 rounded border" style="white-space: pre-line;"></div>
                 </div>
+                <button class="btn btn-outline-secondary mb-3" onclick="copyLetter()">📋 In Zwischenablage</button>
+
             </div>
         </div>
     </div>
@@ -158,17 +160,22 @@
 
     // Anfrage an den Server senden
     try {
-        const response = await fetch('/api/generate-cover-letter', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data),
-        });
+// In deinem Frontend-Code
+const controller = new AbortController();
+const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 Sek
+
+const response = await fetch('/api/generate-cover-letter', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify(data),
+  signal: controller.signal
+});
+clearTimeout(timeoutId);
+
 
         const result = await response.json();
         if (response.ok) {
-            document.getElementById('responseOutput').textContent = result.coverLetter;
+            document.getElementById('responseOutput').innerHTML = formatLetter(result.coverLetter);
         } else {
             document.getElementById('responseOutput').textContent = result.error || 'Fehler bei der Generierung des Bewerbungsschreibens.';
         }
@@ -585,6 +592,23 @@ new Sortable(document.getElementById('internshipList'), {
     }
   }
 });
+
+
+function formatLetter(text) {
+  // Absätze erkennen (2 oder mehr Zeilenumbrüche)
+  const paragraphs = text.trim().split(/\n\s*\n/);
+  return paragraphs
+    .map(p => `<p>${p.replace(/\n/g, ' ')}</p>`)
+    .join('');
+}
+
+function copyLetter() {
+  const html = document.getElementById('responseOutput').innerText;
+  navigator.clipboard.writeText(html).then(() => {
+    alert('Anschreiben kopiert!');
+  });
+}
+
 
   </script>
 </body>

@@ -22,56 +22,73 @@ app.use(express.static(path.join(__dirname, '../public')));
 
 
 async function fetchCompanyInfo(url) {
-  const browser = await chromium.launch();
-  const page = await browser.newPage();
-  const visitedUrls = new Set();
-  const maxPages = 5;
-
-  try {
-    await page.goto(url, { waitUntil: 'domcontentloaded' });
-    visitedUrls.add(url);
-
-    // Alle internen Links extrahieren
-    const links = await page.$$eval('a[href]', anchors => {
-      return anchors
-        .map(a => a.href)
-        .filter(href =>
-          href.startsWith(location.origin) && !href.includes('#')
-        );
-    });
-
-    // Priorisierte Links (z. B. Impressum, Über uns, Karriere, etc.)
-    const keywords = ['impressum', 'about', 'ueber', 'unternehmen', 'karriere', 'team', 'kontakt'];
-    const prioritizedLinks = links.filter(link =>
-      keywords.some(keyword => link.toLowerCase().includes(keyword))
-    );
-
-    // Auswahl + Startseite deduplizieren
-    const targets = [...new Set([url, ...prioritizedLinks])].slice(0, maxPages);
-
-    let fullText = '';
-
-    for (const url of targets) {
-      if (visitedUrls.has(url)) continue;
-      try {
-        await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 15000 });
-
-        const text = await page.evaluate(() => document.body.innerText);
-        fullText += `\n\n--- TEXT VON ${url} ---\n` + text.trim().replace(/\s+/g, ' ');
-        visitedUrls.add(url);
-      } catch (err) {
-        console.warn(`⚠️ Fehler beim Laden von ${url}:`, err.message);
-      }
+      const browser = await chromium.launch({ headless: true });
+    
+      const context = await browser.newContext({
+        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        viewport: { width: 1280, height: 800 }
+      });
+    
+      const page = await context.newPage();
+      const visitedUrls = new Set();
+      const maxPages = 5;
+    
+      try {
+        console.log("📡 Scraping gestartet für:", url);
+        await page.goto(url, { waitUntil: 'networkidle', timeout: 30000 });
+        await page.waitForTimeout(3000);
+    
+        const landingUrl = page.url();
+        const currentOrigin = new URL(landingUrl).origin;
+    
+        const links = await page.$$eval('a[href]', (anchors, origin) => {
+          return anchors
+            .map(a => a.href)
+            .filter(href => href.startsWith(origin) && !href.includes('#'));
+        }, currentOrigin);
+    
+        const keywords = ['impressum', 'about', 'ueber', 'unternehmen', 'karriere', 'team', 'kontakt'];
+        const prioritizedLinks = links.filter(link =>
+          keywords.some(keyword => link.toLowerCase().includes(keyword))
+        );
+    
+        const targets = [...new Set([landingUrl, ...prioritizedLinks])].slice(0, maxPages);
+        console.log("🔗 Ziel-URLs:", targets);
+    
+        let fullText = '';
+    
+        for (const targetUrl of targets) {
+          if (visitedUrls.has(targetUrl)) continue;
+          try {
+            await page.goto(targetUrl, { waitUntil: 'networkidle', timeout: 15000 });
+            await page.waitForTimeout(2000);
+    
+            await page.evaluate(() => {
+              const cookie = document.querySelector('[id*="cookie"], .cookie-banner, .cc-window');
+              if (cookie) cookie.remove();
+            });
+    
+            const text = await page.evaluate(() => document.body.innerText);
+            fullText += `\n\n--- TEXT VON ${targetUrl} ---\n` + text.trim().replace(/\s+/g, ' ');
+            visitedUrls.add(targetUrl);
+          } catch (err) {
+            console.warn(`⚠️ Fehler beim Laden von ${targetUrl}:`, err.message);
+          }
+        }
+    
+        console.log("✅ Gesamttextlänge:", fullText.length);
+        return fullText.slice(0, 12000); // Begrenzung für OpenAI prompt
+      } catch (err) {
+        console.error('❌ Fehler beim Scrapen:', err.message);
+        return null;
+      } finally {
+        await browser.close();
+      }
     }
-
-    return fullText.slice(0, 12000); // Token-Begrenzung beachten
-  } catch (err) {
-    console.error('❌ Fehler beim Initialen Scraping:', err.message);
-    return null;
-  } finally {
-    await browser.close();
-  }
-}
+    
+  
+  
+  
 
 
 // Funktion zum Analysieren des Unternehmensinhalts mit OpenAI
@@ -228,13 +245,21 @@ app.post('/api/generate-cover-letter', async (req, res) => {
             { role: 'user', content: prompt }
         ]);
 
-        const generatedCoverLetter = aiResponse.choices[0].message.content;
+        if (!aiResponse || !aiResponse.choices || !aiResponse.choices[0]?.message?.content) {
+            console.error("❌ Ungültige OpenAI-Antwort:", aiResponse);
+            return res.status(500).json({ error: 'Fehler bei der Antwort von OpenAI.' });
+          }
+          
+          const generatedCoverLetter = aiResponse.choices[0].message.content;
+          
         res.json({ coverLetter: generatedCoverLetter });
 
     } catch (error) {
-        console.error('Fehler bei der Generierung des Bewerbungsschreibens:', error);
-        res.status(500).json({ error: 'Fehler bei der Generierung des Bewerbungsschreibens.' });
+        console.error('❌ Interner Fehler:', error.message);
+        console.error(error.stack); // komplette Fehlerspur anzeigen
+        res.status(500).json({ error: `Interner Fehler: ${error.message}` });
     }
+
 });
 
 // Server starten
