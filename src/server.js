@@ -286,51 +286,78 @@ app.post('/api/generate-cover-letter', async (req, res) => {
 
         // 3. Bewerbungsschreiben erstellen
         const prompt = `
-          Ich bin ${name}, geboren am ${birthdate}, wohnhaft in ${address}.
-          Meine Telefonnummer ist ${phone}, meine E-Mail-Adresse ist ${email}${linkedin ? `, mein LinkedIn-Profil ist ${linkedin}` : ''}.
-          Ich bewerbe mich als ${jobTitle} bei ${company}.
-          Die Stellenbeschreibung lautet: ${jobDescription}.
-          Unternehmensseite: ${companyUrl}.
-          
-          Hier sind meine bisherigen beruflichen Erfahrungen:
-          ${experienceData.map(exp => `- ${exp.tätigkeit} bei ${exp.einrichtung} (${exp.zeitraum})`).join('\n')}
-          
-          Meine Ausbildungsstationen:
-          ${educationData.map(edu => `- ${edu.abschluss} an der ${edu.schulname} (${edu.zeitraum})`).join('\n')}
-          
-          Meine absolvierten Praktika:
-          ${internshipData.map(intern => `- ${intern.praktikum} bei ${intern.unternehmen} (${intern.zeitraum})`).join('\n')}
-          
-          Unternehmensinformationen:
-          ${companyInfo}
-          
-          ⚠️ Regeln für das Anschreiben:
-          - Keine Markdown-Formatierungen wie **Fettdruck**, *Kursiv* oder Überschriften (#).
-          - Keine Emojis oder Sonderzeichen verwenden.
-          - Text bitte als klaren Fließtext mit normalen Absätzen schreiben.
-          - Stellen, die noch manuell geändert oder individuell ergänzt werden müssen, sollen bitte **fett hervorgehoben** sein (durch **Sternchen**).
-          
-          ⚡ Zusätzliche Anweisungen:
-          - Nutze die Informationen aus meinen Berufserfahrungen, Praktika und Ausbildungen, um Stärken, Skills und relevante Fähigkeiten zu identifizieren.
-          - Hebe besondere Kenntnisse oder Soft Skills hervor, wenn sie zum Stellenprofil passen (z.B. Teamfähigkeit, Problemlösung, IT-Kenntnisse).
-          - Das Anschreiben soll persönlich, motiviert und individuell klingen.
-          - Eine positive und professionelle Tonalität ist gewünscht.
-          - Die Einleitung soll neugierig machen, der Hauptteil soll Argumente liefern, der Schlussteil soll freundlich und selbstbewusst abschließen.
-          
-          Struktur des Anschreibens:
-          - Briefkopf (eigene Adresse, Datum, Empfängeradresse)
-          - Betreff (z.B. "Bewerbung als ${jobTitle}")
-          - Anrede ("Sehr geehrte Damen und Herren," oder Ansprechpartner falls bekannt)
-          - Hauptteil (Vorstellung, Bezug auf Stellenanzeige, Motivation, Bezug auf eigene Erfahrungen)
-          - Abschluss (Bereitschaft zu einem Gespräch, freundliche Grußformel)
-          - Name
-          
-          Los geht's!
+        Act like a professional Bewerbungsschreiben-Coach und Texter für Karriereunterlagen. Du hilfst seit 20 Jahren Bewerber:innen in Deutschland, herausragende, individuelle und auf die jeweilige Stelle zugeschnittene Anschreiben zu verfassen – mit einem Fokus auf Authentizität, Motivation und klarer Argumentationsstruktur.
+        
+        Dein Ziel ist es, ein vollständiges, detailreiches, professionelles und auf die ausgeschriebene Stelle maßgeschneidertes Bewerbungsschreiben zu erstellen, das Persönlichkeit, Motivation und relevante Qualifikationen in einem überzeugenden Text miteinander verbindet.
+        
+        ### 🧾 Persönliche Angaben:
+        - Name: ${name}
+        - Geburtsdatum: ${birthdate}
+        - Adresse: ${address}
+        - Telefonnummer: ${phone}
+        - E-Mail: ${email}
+        ${linkedin ? `- LinkedIn-Profil: ${linkedin}` : ''}
+        
+        ### 💼 Stelleninformationen:
+        - Position: ${jobTitle}
+        - Unternehmen: ${company}
+        - Stellenbeschreibung:
+        ${jobDescription}
+        - Unternehmenswebsite: ${companyUrl}
+        
+        ### 📚 Ausbildung:
+        ${educationData.map(edu => `- ${edu.abschluss} an der ${edu.schulname} (${edu.zeitraum})`).join('\n')}
+        
+        ### 🧪 Praktika:
+        ${internshipData.map(intern => `- ${intern.praktikum} bei ${intern.unternehmen} (${intern.zeitraum})`).join('\n')}
+        
+        ### 👨‍💼 Berufserfahrung:
+        ${experienceData.map(exp => `- ${exp.tätigkeit} bei ${exp.einrichtung} (${exp.zeitraum})`).join('\n')}
+        
+        ### 🏢 Unternehmensinformationen:
+        ${companyInfo}
+        
+        ---
+        
+        ### 📌 Regeln für das Anschreiben:
+        1. Keine Markdown-Formatierungen (keine **Fettdruck**, *Kursiv*, # Überschriften).
+        2. Keine Emojis oder Sonderzeichen.
+        3. Klare, zusammenhängende Fließtextstruktur mit Absätzen.
+        4. Stellen, die individuell ergänzt werden müssen, werden durch **fette Hervorhebung** markiert (mit zwei Sternchen).
+        
+        ---
+        
+        ### ✨ Anweisungen für das Bewerbungsschreiben:
+        - Verwende alle übermittelten Informationen zur Erstellung eines vollständigen Anschreibens mit ca. 400–500 Wörtern.
+        - Identifiziere passende Stärken, Fachkenntnisse und Soft Skills aus den angegebenen Erfahrungen, Praktika und Ausbildungen.
+        - Beziehe dich konkret auf Inhalte der Stellenanzeige.
+        - Der Schreibstil soll:
+          - persönlich und motiviert sein
+          - einen klaren roten Faden verfolgen
+          - professionell, höflich und überzeugend wirken
+        - Struktur des Anschreibens:
+          1. Briefkopf (eigene Adresse, Datum, Empfängeradresse)
+          2. Betreffzeile: „Bewerbung als ${jobTitle}“
+          3. Anrede: „Sehr geehrte Damen und Herren,“ oder Name, falls bekannt (**Anrede ggf. manuell anpassen**)
+          4. Einleitung: Persönlicher Einstieg mit Interesse an der Stelle und Bezug zum Unternehmen
+          5. Hauptteil:
+             - Warum diese Stelle?
+             - Welche Qualifikationen und Erfahrungen bringe ich mit?
+             - Was motiviert mich?
+             - Was kann ich beitragen?
+          6. Schluss:
+             - Gesprächsbereitschaft
+             - Hinweis auf Anlagen (z. B. Lebenslauf)
+             - Freundliche Grußformel
+          7. Unterschrift (nur Name)
+        
+        ---
+        
+        Erstelle nun ein vollständiges Bewerbungsschreiben auf Basis aller vorliegenden Daten.
+        
+        Take a deep breath and work on this problem step-by-step.
         `;
-        
-        
-        
-        
+                  
 
         const aiResponse = await askOpenAI([
             { role: 'system', content: 'Du bist ein hilfreicher Assistent, der Bewerbungsschreiben erstellt.' },
