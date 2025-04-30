@@ -10,7 +10,7 @@
     />
     <link rel="stylesheet" href="styles.css" />
     <link
-      href="https://cdn.quilljs.com/1.3.6/quill.snow.css"
+      href="https://cdn.quilljs.com/2.0.0-dev.4/quill.snow.css"
       rel="stylesheet"
     />
   </head>
@@ -331,7 +331,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 
     <!-- Quill -->
-    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+    <script src="https://cdn.quilljs.com/2.0.0-dev.4/quill.min.js"></script>
 
     <!-- Custom Script -->
     <script>
@@ -397,6 +397,19 @@
           document.getElementById("responseOutput").style.display = "block";
           document.getElementById("editButton").hidden = false;
         }
+        const resultTab = new bootstrap.Tab(
+          document.querySelector("#result-tab")
+        );
+        resultTab.show();
+      }
+
+      // Wandelt z.B. "MAX MUSTERMANN" → "Max Mustermann"
+      function toTitleCase(str) {
+        return str
+          .toLowerCase()
+          .split(" ")
+          .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+          .join(" ");
       }
 
       // Anfang aller Daten-Arrays und Quill-Variable
@@ -404,6 +417,7 @@
       let educationData = [];
       let internshipData = [];
       let lastGeneratedLetterHTML = "";
+      let quill;
 
       window.addEventListener("DOMContentLoaded", () => {
         // Quill initialisieren
@@ -488,6 +502,8 @@
 
             loadingText.textContent =
               "✅ Bewerbungsschreiben erfolgreich erstellt!";
+
+            saveState();
           } else {
             quill.root.innerHTML = "";
             loadingText.textContent =
@@ -547,7 +563,7 @@
           // Name
           if (json.name) {
             console.log("✏️ Name gefunden:", json.name);
-            document.getElementById("name").value = json.name;
+            document.getElementById("name").value = toTitleCase(json.name);
           }
 
           // Geburtsdatum (Konvertierung DD.MM.YYYY ➔ YYYY-MM-DD)
@@ -966,16 +982,18 @@
         const plainTextDiv = document.getElementById("responseOutput");
         const wrapper = document.getElementById("quillWrapper");
 
-        // 1) Aktuelles Quill-HTML in die „lastGeneratedLetterHTML“-Variable schreiben
+        // 1) Aktuelles Quill-HTML in die Variable schreiben
         lastGeneratedLetterHTML = quill.root.innerHTML;
         // 2) Ausgabe damit updaten
         plainTextDiv.innerHTML = lastGeneratedLetterHTML;
+        // 3) Und direkt in localStorage sichern
+        saveState();
 
-        // 3) Quill-Editor und Toolbar verbergen, Ausgabe wieder einblenden
+        // 4) Quill-Editor und Toolbar verbergen, Ausgabe wieder einblenden
         wrapper.style.display = "none";
         plainTextDiv.style.display = "block";
 
-        // 4) Buttons umschalten
+        // 5) Buttons umschalten
         document.getElementById("editButton").hidden = false;
         document.getElementById("saveButton").hidden = true;
       }
