@@ -238,17 +238,19 @@
         </div>
 
         <!-- Ergebnis -->
+
         <div class="tab-pane fade" id="result" role="tabpanel">
           <p>Wenn alles ausgefüllt ist, kannst du starten:</p>
+
           <button class="btn btn-success" onclick="startAgent()">
             🚀 Bewerbung erstellen lassen
           </button>
+
           <div id="loadingStatus" class="align-items-center my-3" hidden>
-             
             <div class="spinner-border text-primary me-3" role="status">
-                  <span class="visually-hidden">Loading...</span>  
+              <span class="visually-hidden">Loading...</span>
             </div>
-             
+
             <span id="loadingText"
               >⏳ Der KI-Agent generiert dein Bewerbungsschreiben…</span
             >
@@ -262,33 +264,61 @@
             <h2 class="mb-4 text-center text-primary">
               📄 Ihr Bewerbungsschreiben
             </h2>
-            <div
-              id="responseEditor"
-              style="height: auto; min-height: 400px"
-            ></div>
+
+            <div id="quillWrapper" style="display: none">
+              <div id="toolbar">
+                <span class="ql-formats">
+                  <select class="ql-header">
+                    <option selected></option>
+
+                    <option value="1"></option>
+
+                    <option value="2"></option>
+                  </select>
+                  <button class="ql-bold"></button>
+                  <button class="ql-italic"></button>
+                  <button class="ql-underline"></button>
+                </span>
+
+                <span class="ql-formats">
+                  <button class="ql-link"></button>
+                  <button class="ql-list" value="ordered"></button>
+                  <button class="ql-list" value="bullet"></button>
+                  <button class="ql-clean"></button>
+                </span>
+              </div>
+
+              <div id="responseEditor" style="min-height: 400px"></div>
+            </div>
+
             <div id="responseOutput" class="mt-3" style="display: none"></div>
           </div>
 
-          <button class="btn btn-outline-secondary mb-3" onclick="copyLetter()">
-            📋 In Zwischenablage
-          </button>
-          <div class="text-end mb-3">
-            <button
-              id="editButton"
-              class="btn btn-outline-primary"
-              onclick="enterEditMode()"
-            >
-              ✏️ Bearbeiten
+          <!-- Button-Zeile: links & rechts ausgerichtet -->
+
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <button class="btn btn-outline-secondary" onclick="copyLetter()">
+              📋 In Zwischenablage
             </button>
 
-            <button
-              id="saveButton"
-              class="btn btn-success"
-              onclick="exitEditMode()"
-              hidden
-            >
-              💾 Speichern
-            </button>
+            <div>
+              <button
+                id="editButton"
+                class="btn btn-outline-primary me-2"
+                onclick="enterEditMode()"
+              >
+                ✏️ Bearbeiten
+              </button>
+
+              <button
+                id="saveButton"
+                class="btn btn-success"
+                onclick="exitEditMode()"
+                hidden
+              >
+                💾 Speichern
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -305,9 +335,95 @@
 
     <!-- Custom Script -->
     <script>
+      // === Lokale Zwischenspeicherung (Autosave) für JobAgent ===
+      const STORAGE_KEY = "jobAgentState";
+
+      function saveState() {
+        const state = {
+          name: document.getElementById("name").value,
+          birthdate: document.getElementById("birthdate").value,
+          address: document.getElementById("address").value,
+          phone: document.getElementById("phone").value,
+          email: document.getElementById("email").value,
+          linkedin: document.getElementById("linkedin").value,
+          jobTitle: document.getElementById("jobTitle").value,
+          company: document.getElementById("company").value,
+          companyUrl: document.getElementById("companyUrl").value,
+          jobDescription: document.getElementById("jobDescription").value,
+          experienceData,
+          educationData,
+          internshipData,
+          lastGeneratedLetterHTML,
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      }
+
+      function loadState() {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (!saved) return;
+        const state = JSON.parse(saved);
+
+        if (state.name) document.getElementById("name").value = state.name;
+        if (state.birthdate)
+          document.getElementById("birthdate").value = state.birthdate;
+        if (state.address)
+          document.getElementById("address").value = state.address;
+        if (state.phone) document.getElementById("phone").value = state.phone;
+        if (state.email) document.getElementById("email").value = state.email;
+        if (state.linkedin)
+          document.getElementById("linkedin").value = state.linkedin;
+        if (state.jobTitle)
+          document.getElementById("jobTitle").value = state.jobTitle;
+        if (state.company)
+          document.getElementById("company").value = state.company;
+        if (state.companyUrl)
+          document.getElementById("companyUrl").value = state.companyUrl;
+        if (state.jobDescription)
+          document.getElementById("jobDescription").value =
+            state.jobDescription;
+
+        experienceData = state.experienceData || [];
+        educationData = state.educationData || [];
+        internshipData = state.internshipData || [];
+        lastGeneratedLetterHTML = state.lastGeneratedLetterHTML || "";
+
+        renderExperienceList();
+        renderEducationList();
+        renderInternshipList();
+
+        if (lastGeneratedLetterHTML) {
+          document.getElementById("responseOutput").innerHTML =
+            lastGeneratedLetterHTML;
+          document.getElementById("responseOutput").style.display = "block";
+          document.getElementById("editButton").hidden = false;
+        }
+      }
+
+      // Anfang aller Daten-Arrays und Quill-Variable
       let experienceData = [];
       let educationData = [];
       let internshipData = [];
+      let lastGeneratedLetterHTML = "";
+
+      window.addEventListener("DOMContentLoaded", () => {
+        // Quill initialisieren
+        quill = new Quill("#responseEditor", {
+          theme: "snow",
+          placeholder: "Du kannst dein Anschreiben hier bearbeiten.",
+          modules: { toolbar: "#toolbar" },
+        });
+        document.getElementById("quillWrapper").style.display = "none";
+
+        // State wiederherstellen
+        loadState();
+
+        // Auto-Save bei jeder Eingabe in Formularfeldern
+        document
+          .querySelectorAll(
+            "#formPersonal input, #formJob input, #formJob textarea"
+          )
+          .forEach((el) => el.addEventListener("input", saveState));
+      });
 
       async function startAgent() {
         const data = {
@@ -362,10 +478,10 @@
 
           if (response.ok) {
             const formatted = formatLetter(result.coverLetter);
-            quill.root.innerHTML = formatted;
-            document.getElementById("responseOutput").innerHTML = formatted; // Vorschau anzeigen, Editor verbergen
+            quill.clipboard.dangerouslyPasteHTML(formatted); // ✅ der richtige Weg
+            lastGeneratedLetterHTML = formatted;
+            document.getElementById("responseOutput").innerHTML = formatted;
 
-            document.getElementById("responseEditor").style.display = "none";
             document.getElementById("responseOutput").style.display = "block";
             document.getElementById("editButton").hidden = false;
             document.getElementById("saveButton").hidden = true;
@@ -411,7 +527,6 @@
             method: "POST",
             body: formData,
           });
-
           const data = await res.json();
           console.log("📦 Daten vom Server erhalten:", data);
 
@@ -427,123 +542,103 @@
 
           const json = data.extracted;
           console.log("✅ Verarbeitetes JSON:", json);
+          console.log("➡️ Versuche, Felder zu befüllen...");
 
-          if (json) {
-            console.log("➡️ Versuche, Felder zu befüllen...");
-
-            // Name
-            if (json.name) {
-              console.log("✏️ Name gefunden:", json.name);
-              document.getElementById("name").value = json.name;
-            }
-
-            // Geburtsdatum (Konvertierung DD.MM.YYYY ➔ YYYY-MM-DD)
-            if (json.birthdate) {
-              console.log("✏️ Geburtsdatum gefunden:", json.birthdate);
-              const parts = json.birthdate.split(".");
-              if (parts.length === 3) {
-                const formattedDate = `${parts[2]}-${parts[1].padStart(
-                  2,
-                  "0"
-                )}-${parts[0].padStart(2, "0")}`;
-                document.getElementById("birthdate").value = formattedDate;
-              } else {
-                console.warn(
-                  "⚠️ Geburtsdatum konnte nicht umformatiert werden:",
-                  json.birthdate
-                );
-              }
-            }
-
-            // Adresse
-            if (json.address) {
-              console.log("✏️ Adresse gefunden:", json.address);
-              document.getElementById("address").value = json.address;
-            }
-
-            // Telefon
-            if (json.phone) {
-              console.log("✏️ Telefon gefunden:", json.phone);
-              document.getElementById("phone").value = json.phone;
-            }
-
-            // E-Mail
-            if (json.email) {
-              console.log("✏️ E-Mail gefunden:", json.email);
-              document.getElementById("email").value = json.email;
-            }
-
-            // LinkedIn
-            if (json.linkedin) {
-              console.log("✏️ LinkedIn gefunden:", json.linkedin);
-              document.getElementById("linkedin").value = json.linkedin;
-            }
-
-            // Berufserfahrungen
-            if (json.experience && Array.isArray(json.experience)) {
-              console.log(
-                "✏️ Strukturierte Berufserfahrungen gefunden:",
-                json.experience
-              );
-
-              const newExperiences = json.experience.map((exp) => {
-                if (typeof exp === "string") {
-                  return { tätigkeit: exp, zeitraum: "", einrichtung: "" };
-                }
-                return {
-                  tätigkeit: exp.tätigkeit || "",
-                  zeitraum: exp.zeitraum || "",
-                  einrichtung: exp.einrichtung || "",
-                };
-              });
-
-              // Alte Daten beibehalten, neue hinzufügen
-              experienceData = [...experienceData, ...newExperiences];
-
-              renderExperienceList();
-            }
-
-            // Schule
-            if (json.education && Array.isArray(json.education)) {
-              console.log(
-                "✏️ Schulbildung/Ausbildung gefunden:",
-                json.education
-              );
-
-              const newEducation = json.education.map((edu) => ({
-                abschluss: edu.abschluss || "",
-                schulname: edu.schulname || "",
-                zeitraum: edu.zeitraum || "",
-              }));
-
-              // Alte Daten beibehalten, neue hinzufügen
-              educationData = [...educationData, ...newEducation];
-
-              renderEducationList();
-            }
-
-            // Praktika
-            if (json.internships && Array.isArray(json.internships)) {
-              console.log("✏️ Praktika gefunden:", json.internships);
-
-              const newInternships = json.internships.map((intern) => ({
-                praktikum: intern.praktikum || "",
-                zeitraum: intern.zeitraum || "",
-                unternehmen: intern.unternehmen || "",
-              }));
-
-              // Alte Daten beibehalten, neue hinzufügen
-              internshipData = [...internshipData, ...newInternships];
-
-              renderInternshipList();
-            }
-
-            status.textContent = "✅ Felder erfolgreich aus KI-Daten befüllt!";
-          } else {
-            console.error("⚠️ JSON war leer oder ungültig.");
-            status.textContent =
-              "⚠️ KI-Antwort konnte nicht verarbeitet werden.";
+          // Name
+          if (json.name) {
+            console.log("✏️ Name gefunden:", json.name);
+            document.getElementById("name").value = json.name;
           }
+
+          // Geburtsdatum (Konvertierung DD.MM.YYYY ➔ YYYY-MM-DD)
+          if (json.birthdate) {
+            console.log("✏️ Geburtsdatum gefunden:", json.birthdate);
+            const parts = json.birthdate.split(".");
+            if (parts.length === 3) {
+              const formattedDate = `${parts[2]}-${parts[1].padStart(
+                2,
+                "0"
+              )}-${parts[0].padStart(2, "0")}`;
+              document.getElementById("birthdate").value = formattedDate;
+            } else {
+              console.warn(
+                "⚠️ Geburtsdatum konnte nicht umformatiert werden:",
+                json.birthdate
+              );
+            }
+          }
+
+          // Adresse
+          if (json.address) {
+            console.log("✏️ Adresse gefunden:", json.address);
+            document.getElementById("address").value = json.address;
+          }
+
+          // Telefon
+          if (json.phone) {
+            console.log("✏️ Telefon gefunden:", json.phone);
+            document.getElementById("phone").value = json.phone;
+          }
+
+          // E-Mail
+          if (json.email) {
+            console.log("✏️ E-Mail gefunden:", json.email);
+            document.getElementById("email").value = json.email;
+          }
+
+          // LinkedIn
+          if (json.linkedin) {
+            console.log("✏️ LinkedIn gefunden:", json.linkedin);
+            document.getElementById("linkedin").value = json.linkedin;
+          }
+
+          // Berufserfahrungen
+          if (json.experience && Array.isArray(json.experience)) {
+            console.log(
+              "✏️ Strukturierte Berufserfahrungen gefunden:",
+              json.experience
+            );
+            const newExperiences = json.experience.map((exp) => {
+              if (typeof exp === "string") {
+                return { tätigkeit: exp, zeitraum: "", einrichtung: "" };
+              }
+              return {
+                tätigkeit: exp.tätigkeit || "",
+                zeitraum: exp.zeitraum || "",
+                einrichtung: exp.einrichtung || "",
+              };
+            });
+            experienceData = [...experienceData, ...newExperiences];
+            renderExperienceList();
+          }
+
+          // Schulbildung/Ausbildung
+          if (json.education && Array.isArray(json.education)) {
+            console.log("✏️ Schulbildung/Ausbildung gefunden:", json.education);
+            const newEducation = json.education.map((edu) => ({
+              abschluss: edu.abschluss || "",
+              schulname: edu.schulname || "",
+              zeitraum: edu.zeitraum || "",
+            }));
+            educationData = [...educationData, ...newEducation];
+            renderEducationList();
+          }
+
+          // Praktika
+          if (json.internships && Array.isArray(json.internships)) {
+            console.log("✏️ Praktika gefunden:", json.internships);
+            const newInternships = json.internships.map((intern) => ({
+              praktikum: intern.praktikum || "",
+              zeitraum: intern.zeitraum || "",
+              unternehmen: intern.unternehmen || "",
+            }));
+            internshipData = [...internshipData, ...newInternships];
+            renderInternshipList();
+          }
+
+          status.textContent = "✅ Felder erfolgreich aus KI-Daten befüllt!";
+          // **Autosave**: alle soeben befüllten Felder landen jetzt im localStorage
+          saveState();
         } catch (err) {
           console.error("❌ Schwerer Fehler bei Upload/Verarbeitung:", err);
           status.textContent =
@@ -856,48 +951,31 @@
         });
       }
 
-      let quill;
-
-      window.addEventListener("DOMContentLoaded", () => {
-        quill = new Quill("#responseEditor", {
-          theme: "snow",
-          placeholder: "Du kannst dein Anschreiben hier bearbeiten.",
-          modules: {
-            toolbar: [
-              [{ header: [1, 2, false] }],
-              ["bold", "italic", "underline"],
-              ["link"],
-              [{ list: "ordered" }, { list: "bullet" }],
-              ["clean"],
-            ],
-          },
-        });
-      });
-
       // Wechsel zu Quill-Bearbeitungsmodus
       function enterEditMode() {
-        const plainTextDiv = document.getElementById("responseOutput");
-        const editorDiv = document.getElementById("responseEditor");
+        document.getElementById("responseOutput").style.display = "none";
+        document.getElementById("quillWrapper").style.display = "block";
 
-        quill.root.innerHTML = plainTextDiv.innerHTML;
-
-        plainTextDiv.style.display = "none";
-        editorDiv.style.display = "block";
+        quill.clipboard.dangerouslyPasteHTML(lastGeneratedLetterHTML || ""); // fallback auf leeren String
 
         document.getElementById("editButton").hidden = true;
         document.getElementById("saveButton").hidden = false;
       }
 
-      // Zurück zur Anzeige
       function exitEditMode() {
         const plainTextDiv = document.getElementById("responseOutput");
-        const editorDiv = document.getElementById("responseEditor");
+        const wrapper = document.getElementById("quillWrapper");
 
-        plainTextDiv.innerHTML = quill.root.innerHTML;
+        // 1) Aktuelles Quill-HTML in die „lastGeneratedLetterHTML“-Variable schreiben
+        lastGeneratedLetterHTML = quill.root.innerHTML;
+        // 2) Ausgabe damit updaten
+        plainTextDiv.innerHTML = lastGeneratedLetterHTML;
 
-        editorDiv.style.display = "none";
+        // 3) Quill-Editor und Toolbar verbergen, Ausgabe wieder einblenden
+        wrapper.style.display = "none";
         plainTextDiv.style.display = "block";
 
+        // 4) Buttons umschalten
         document.getElementById("editButton").hidden = false;
         document.getElementById("saveButton").hidden = true;
       }
