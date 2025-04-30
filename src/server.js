@@ -289,6 +289,7 @@ app.post("/api/generate-cover-letter", async (req, res) => {
     experienceData,
     educationData,
     internshipData,
+    overrideWordCount,
   } = req.body;
 
   if (
@@ -326,6 +327,8 @@ app.post("/api/generate-cover-letter", async (req, res) => {
         error: "Fehler beim Extrahieren der Unternehmensinformationen.",
       });
     }
+
+    const targetWords = overrideWordCount || 450; // Fallback
 
     // 3. Bewerbungsschreiben erstellen
     const prompt = `
@@ -386,7 +389,7 @@ app.post("/api/generate-cover-letter", async (req, res) => {
         ---
         
         ### ✨ Anweisungen für das Bewerbungsschreiben:
-        - Verwende alle übermittelten Informationen zur Erstellung eines vollständigen Anschreibens mit ca. 400–500 Wörtern.
+        - Verwende alle übermittelten Informationen zur Erstellung eines vollständigen Anschreibens mit **ca. ${targetWords} Wörtern**.
         - Identifiziere passende Stärken, Fachkenntnisse und Soft Skills aus den angegebenen Erfahrungen, Praktika und Ausbildungen.
         - Beziehe dich konkret auf Inhalte der Stellenanzeige.
         - Der Schreibstil soll:

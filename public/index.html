@@ -556,19 +556,55 @@
         loadingStatus.hidden = false;
         loadingText.textContent = "🔄 Neu generiere dein Anschreiben…";
 
-        // 1) Frisch generieren
-        await startAgent();
+        // 1) Wortzählung des aktuellen Anschreibens
+        const plain = lastGeneratedLetterHTML
+          .replace(/<\/?[^>]+>/g, " ")
+          .trim()
+          .split(/\s+/)
+          .filter((w) => w.length > 0);
+        const wordCount = plain.length;
 
-        // 2) Gesammelte Kürzungen anwenden
-        if (shortenCount > 0) {
-          loadingText.textContent = `✂️ Wende Kürzung (${shortenCount}×) an…`;
-          await editLetter("shorten", shortenCount);
-        }
+        // 2) Alle Form-Daten plus overrideWordCount zusammentragen
+        const payload = {
+          name: document.getElementById("name").value,
+          birthdate: document.getElementById("birthdate").value,
+          address: document.getElementById("address").value,
+          phone: document.getElementById("phone").value,
+          email: document.getElementById("email").value,
+          linkedin: document.getElementById("linkedin").value,
+          jobTitle: document.getElementById("jobTitle").value,
+          company: document.getElementById("company").value,
+          companyUrl: document.getElementById("companyUrl").value,
+          jobDescription: document.getElementById("jobDescription").value,
+          experienceData,
+          educationData,
+          internshipData,
+          overrideWordCount: wordCount,
+        };
 
-        // 3) Gesammelte Verlängerungen anwenden
-        if (extendCount > 0) {
-          loadingText.textContent = `➕ Wende Verlängerung (${extendCount}×) an…`;
-          await editLetter("extend", extendCount);
+        // 3) API-Call mit vollständigem Payload
+        try {
+          const response = await fetch("/api/generate-cover-letter", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          const result = await response.json();
+          if (response.ok && result.coverLetter) {
+            const formatted = formatLetter(result.coverLetter);
+            lastGeneratedLetterHTML = formatted;
+            document.getElementById("responseOutput").innerHTML = formatted;
+            saveState();
+            loadingText.textContent = `✅ Neues Anschreiben (~${wordCount} Wörter) erstellt!`;
+          } else {
+            loadingText.textContent = "❌ Fehler bei der Neugenerierung.";
+            console.error(result);
+          }
+        } catch (err) {
+          loadingText.textContent = "❌ Fehler beim Senden der Anfrage.";
+          console.error(err);
+        } finally {
+          setTimeout(() => (loadingStatus.hidden = true), 2000);
         }
       }
 
