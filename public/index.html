@@ -142,8 +142,7 @@
           </div>
         <span id="loadingText">⏳ Der KI-Agent generiert dein Bewerbungsschreiben…</span>
         </div>       
-      
-      <span id="loading" class="ms-3 text-muted" style="display: none;">⏳ Agent arbeitet...</span>
+    
 
       <div id="letterContainer" class="bg-white p-5 rounded shadow-sm mx-auto" style="max-width: 800px;">
         <h2 class="mb-4 text-center text-primary">📄 Ihr Bewerbungsschreiben</h2>
@@ -198,7 +197,6 @@
     const loadingStatus = document.getElementById('loadingStatus');
     const loadingText = document.getElementById('loadingText');
 
-    loadingEl.style.display = 'inline'; // für das kleine ⏳ Agent arbeitet...
     loadingStatus.style.display = 'flex'; // für den Spinner mit Fortschrittstext
     loadingText.textContent = '⏳ Der KI-Agent generiert dein Bewerbungsschreiben…';
 
