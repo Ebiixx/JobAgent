@@ -136,6 +136,13 @@
     <div class="tab-pane fade" id="result" role="tabpanel">
       <p>Wenn alles ausgefüllt ist, kannst du starten:</p>
       <button class="btn btn-success" onclick="startAgent()">🚀 Bewerbung erstellen lassen</button>
+      <div id="loadingStatus" class="d-flex align-items-center my-3" style="display: none;">
+          <div class="spinner-border text-primary me-3" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+        <span id="loadingText">⏳ Der KI-Agent generiert dein Bewerbungsschreiben…</span>
+        </div>       
+      
       <span id="loading" class="ms-3 text-muted" style="display: none;">⏳ Agent arbeitet...</span>
 
       <div id="letterContainer" class="bg-white p-5 rounded shadow-sm mx-auto" style="max-width: 800px;">
@@ -166,52 +173,69 @@
 
 
   async function startAgent() {
-    const data = {
-      name: document.getElementById('name').value,
-      birthdate: document.getElementById('birthdate').value,
-      address: document.getElementById('address').value,
-      phone: document.getElementById('phone').value,
-      email: document.getElementById('email').value,
-      linkedin: document.getElementById('linkedin').value,
-      jobTitle: document.getElementById('jobTitle').value,
-      company: document.getElementById('company').value,
-      companyUrl: document.getElementById('companyUrl').value,
-      jobDescription: document.getElementById('jobDescription').value,
+    const data = {
+      name: document.getElementById('name').value,
+      birthdate: document.getElementById('birthdate').value,
+      address: document.getElementById('address').value,
+      phone: document.getElementById('phone').value,
+      email: document.getElementById('email').value,
+      linkedin: document.getElementById('linkedin').value,
+      jobTitle: document.getElementById('jobTitle').value,
+      company: document.getElementById('company').value,
+      companyUrl: document.getElementById('companyUrl').value,
+      jobDescription: document.getElementById('jobDescription').value,
+      experienceData: experienceData,
+      educationData: educationData,
+      internshipData: internshipData,
+    };
 
-      // ➡️ Diese drei neuen Felder hinzufügen:
-      experienceData: experienceData,
-      educationData: educationData,
-      internshipData: internshipData,
-    };
+    if (!data.companyUrl || !data.name || !data.birthdate || !data.address || !data.jobTitle || !data.company || !data.jobDescription) {
+      alert('Bitte fülle alle Pflichtfelder aus.');
+      return;
+    }
 
-    if (!data.companyUrl || !data.name || !data.birthdate || !data.address || !data.jobTitle || !data.company || !data.jobDescription) {
-      alert('Bitte fülle alle Pflichtfelder aus.');
-      return;
-    }
+    const loadingEl = document.getElementById('loading');
+    const loadingStatus = document.getElementById('loadingStatus');
+    const loadingText = document.getElementById('loadingText');
 
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 Sek Timeout
+    loadingEl.style.display = 'inline'; // für das kleine ⏳ Agent arbeitet...
+    loadingStatus.style.display = 'flex'; // für den Spinner mit Fortschrittstext
+    loadingText.textContent = '⏳ Der KI-Agent generiert dein Bewerbungsschreiben…';
 
-      const response = await fetch('/api/generate-cover-letter', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-        signal: controller.signal
-      });
-      clearTimeout(timeoutId);
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 Sek Timeout
 
-      const result = await response.json();
-      if (response.ok) {
-        document.getElementById('responseOutput').innerHTML = formatLetter(result.coverLetter);
-      } else {
-        document.getElementById('responseOutput').textContent = result.error || 'Fehler bei der Generierung des Bewerbungsschreibens.';
-      }
-    } catch (error) {
-      document.getElementById('responseOutput').textContent = 'Fehler beim Senden der Anfrage.';
-      console.error(error);
-    }
+      const response = await fetch('/api/generate-cover-letter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+      const result = await response.json();
+
+      if (response.ok) {
+        document.getElementById('responseOutput').innerHTML = formatLetter(result.coverLetter);
+        loadingText.textContent = '✅ Bewerbungsschreiben erfolgreich erstellt!';
+      } else {
+        document.getElementById('responseOutput').textContent = result.error || 'Fehler bei der Generierung des Bewerbungsschreibens.';
+        loadingText.textContent = '❌ Fehler beim Generieren des Schreibens.';
+      }
+    } catch (error) {
+      document.getElementById('responseOutput').textContent = 'Fehler beim Senden der Anfrage.';
+      loadingText.textContent = '❌ Fehler beim Senden der Anfrage.';
+      console.error(error);
+    } finally {
+      setTimeout(() => {
+        loadingEl.style.display = 'none';
+        loadingStatus.style.display = 'none';
+      }, 2000);
+    }
   }
+
+
 
 
 
@@ -245,7 +269,7 @@ async function uploadCV(event) {
 
     if (!data.extracted) {
       console.error("⚠️ Keine 'extracted'-Antwort vom Server erhalten!");
-      status.textContent = '⚠️ KI konnte keine Daten extrahieren.';
+      status.textContent = '⚠️ KI konnte keine Daten extrahieren. Bitte versuchen Sie es nochmals. Sollte der Fehler weiterhin bestehen, füllen Sie bitte die Formulardaten manuell aus.';
       return;
     }
 

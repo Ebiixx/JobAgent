@@ -126,3 +126,13 @@ button.btn-sm.btn-danger:hover {
     background-color: #ff1a1a;
     color: white;
 }
+
+#loading {
+    font-weight: bold;
+    transition: opacity 0.3s;
+  }
+
+#loadingStatus {
+  font-weight: 500;
+  font-size: 1.05rem;
+}
