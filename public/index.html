@@ -303,13 +303,26 @@
 
             <div>
               <button
+                id="exportPdfButton"
+                class="btn btn-outline-info me-2"
+                onclick="exportPdf()"
+              >
+                📄 Als PDF speichern
+              </button>
+              <button
+                id="exportDocButton"
+                class="btn btn-outline-info me-2"
+                onclick="exportDoc()"
+              >
+                📄 Als Word speichern
+              </button>
+              <button
                 id="editButton"
                 class="btn btn-outline-primary me-2"
                 onclick="enterEditMode()"
               >
                 ✏️ Bearbeiten
               </button>
-
               <button
                 id="saveButton"
                 class="btn btn-success"
@@ -332,6 +345,9 @@
 
     <!-- Quill -->
     <script src="https://cdn.quilljs.com/2.0.0-dev.4/quill.min.js"></script>
+
+    <!-- html2pdf (für PDF-Export) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
 
     <!-- Custom Script -->
     <script>
@@ -996,6 +1012,70 @@
         // 5) Buttons umschalten
         document.getElementById("editButton").hidden = false;
         document.getElementById("saveButton").hidden = true;
+      }
+
+      // === PDF-Export ohne Überschrift, höhere Auflösung ===
+      function exportPdf() {
+        // Nur den reinen Brief exportieren, nicht den H2-Header
+        const element = document.getElementById("responseOutput");
+        console.log("📄 PDF-Export gestartet (ohne Header)");
+        html2pdf()
+          .set({
+            margin: 10,
+            filename: "Bewerbung.pdf",
+            image: { type: "jpeg", quality: 0.98 },
+            html2canvas: {
+              scale: 4,
+              dpi: 300,
+              letterRendering: true,
+              useCORS: true,
+            },
+            jsPDF: {
+              unit: "mm",
+              format: "a4",
+              orientation: "portrait",
+            },
+          })
+          .from(element)
+          .save()
+          .then(() => console.log("✅ PDF-Export abgeschlossen"))
+          .catch((err) => console.error("❌ PDF-Export fehlgeschlagen", err));
+      }
+
+      // === DOC-Export aus responseOutput, Word-kompatibel ===
+      function exportDoc() {
+        console.log("📄 DOC-Export gestartet");
+        const content = document.getElementById("responseOutput").innerHTML;
+        const header = `
+    <html xmlns:o="urn:schemas-microsoft-com:office:office"
+          xmlns:w="urn:schemas-microsoft-com:office:word"
+          xmlns="http://www.w3.org/TR/REC-html40">
+    <head>
+      <meta http-equiv="Content-Type" content="application/msword; charset=utf-8"/>
+      <!--[if gte mso 9]><xml>
+        <w:WordDocument>
+          <w:View>Print</w:View>
+          <w:Zoom>100</w:Zoom>
+          <w:DoNotOptimizeForBrowser/>
+        </w:WordDocument>
+      </xml><![endif]-->
+      <title>Bewerbung</title>
+    </head>
+    <body>`;
+        const footer = "</body></html>";
+        const blob = new Blob(["\ufeff", header, content, footer], {
+          type: "application/vnd.ms-word;charset=utf-8",
+        });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+
+        link.href = url;
+        link.download = "Bewerbung.doc";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        console.log("✅ DOC-Export abgeschlossen");
       }
     </script>
   </body>
