@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="de">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -9,159 +10,163 @@
 </head>
 
 <body class="bg-light">
-<div class="container py-5">
-  <h1 class="mb-4 text-center">📄 JobAgent – Bewerbungshelfer</h1>
+  <div class="container py-5">
+    <h1 class="mb-4 text-center">📄 JobAgent – Bewerbungshelfer</h1>
 
-  <!-- Tabs -->
-  <ul class="nav nav-tabs mb-3" id="formTabs" role="tablist">
-    <li class="nav-item">
-      <button class="nav-link active" id="personal-tab" data-bs-toggle="tab" data-bs-target="#personal" type="button" role="tab">1. Persönliche Daten</button>
-    </li>
-    <li class="nav-item">
-      <button class="nav-link" id="job-tab" data-bs-toggle="tab" data-bs-target="#job" type="button" role="tab">2. Job & Arbeitgeber</button>
-    </li>
-    <li class="nav-item">
-      <button class="nav-link" id="result-tab" data-bs-toggle="tab" data-bs-target="#result" type="button" role="tab">3. KI Agent starten</button>
-    </li>
-  </ul>
+    <!-- Tabs -->
+    <ul class="nav nav-tabs mb-3" id="formTabs" role="tablist">
+      <li class="nav-item">
+        <button class="nav-link active" id="personal-tab" data-bs-toggle="tab" data-bs-target="#personal" type="button"
+          role="tab">1. Persönliche Daten</button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link" id="job-tab" data-bs-toggle="tab" data-bs-target="#job" type="button" role="tab">2. Job
+          & Arbeitgeber</button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link" id="result-tab" data-bs-toggle="tab" data-bs-target="#result" type="button"
+          role="tab">3. KI Agent starten</button>
+      </li>
+    </ul>
 
-  <!-- Tab Inhalte -->
-  <div class="tab-content" id="formTabsContent">
+    <!-- Tab Inhalte -->
+    <div class="tab-content" id="formTabsContent">
 
-    <!-- Persönliche Daten -->
-    <div class="tab-pane fade show active" id="personal" role="tabpanel">
-      <form id="formPersonal">
+      <!-- Persönliche Daten -->
+      <div class="tab-pane fade show active" id="personal" role="tabpanel">
+        <form id="formPersonal">
 
-        <!-- Standardfelder -->
-        <div class="mb-3">
-          <label class="form-label">Name</label>
-          <input type="text" class="form-control" id="name" placeholder="Max Mustermann" />
-        </div>
-
-        <div class="mb-3">
-          <label class="form-label">Geburtsdatum</label>
-          <input type="date" class="form-control" id="birthdate" />
-        </div>
-
-        <div class="mb-3">
-          <label class="form-label">Adresse</label>
-          <input type="text" class="form-control" id="address" />
-        </div>
-
-        <!-- NEU: Telefon -->
-        <div class="mb-3">
-          <label class="form-label">Telefonnummer</label>
-          <input type="text" class="form-control" id="phone" placeholder="+49 170 1234567" />
-        </div>
-
-        <!-- NEU: E-Mail -->
-        <div class="mb-3">
-          <label class="form-label">E-Mail-Adresse</label>
-          <input type="email" class="form-control" id="email" placeholder="max@example.com" />
-        </div>
-
-        <!-- NEU: LinkedIn -->
-        <div class="mb-3">
-          <label class="form-label">LinkedIn Profil (optional)</label>
-          <input type="url" class="form-control" id="linkedin" placeholder="https://linkedin.com/in/username" />
-        </div>
-
-        <!-- Berufserfahrung -->
-        <div class="mb-3">
-          <div id="experienceContainer" class="list-group mb-3">
-            <div class="d-flex justify-content-between align-items-center">
-              <label class="form-label">Berufserfahrung</label>
-              <button type="button" class="btn btn-primary" onclick="addExperience()">➕ Neue Erfahrung</button>
-            </div>
-            <div id="experienceList" class="list-group mb-3"></div>
+          <!-- Standardfelder -->
+          <div class="mb-3">
+            <label class="form-label">Name</label>
+            <input type="text" class="form-control" id="name" placeholder="Max Mustermann" />
           </div>
-        </div>
 
-        <!-- Schulbildung -->
-        <div class="mb-3">
-          <div id="educationContainer" class="list-group mb-3">
-            <div class="d-flex justify-content-between align-items-center">
-              <label class="form-label">Schulbildung / Ausbildung</label>
-              <button type="button" class="btn btn-primary" onclick="addEducation()">➕ Neue Ausbildung</button>
-            </div>
-            <div id="educationList" class="list-group mb-3"></div>
+          <div class="mb-3">
+            <label class="form-label">Geburtsdatum</label>
+            <input type="date" class="form-control" id="birthdate" />
           </div>
-        </div>
 
-        <!-- Praktika -->
-        <div class="mb-3">
-          <div id="internshipContainer" class="list-group mb-3">
-            <div class="d-flex justify-content-between align-items-center">
-              <label class="form-label">Praktika</label>
-              <button type="button" class="btn btn-primary" onclick="addInternship()">➕ Neues Praktikum</button>
-            </div>
-            <div id="internshipList" class="list-group mb-3"></div>
+          <div class="mb-3">
+            <label class="form-label">Adresse</label>
+            <input type="text" class="form-control" id="address" />
           </div>
-        </div>
 
-        <!-- Lebenslauf-Upload -->
-        <div class="mb-3">
-          <label class="form-label">Lebenslauf (PDF)</label>
-          <input type="file" class="form-control" id="cvUpload" accept=".pdf" />
-          <button type="button" class="btn btn-secondary mt-2" onclick="uploadCV(event)">📤 PDF auslesen</button>
-          <div id="uploadStatus" class="form-text text-muted mt-1" style="display: none;">⏳ Wird analysiert...</div>
-        </div>
+          <!-- NEU: Telefon -->
+          <div class="mb-3">
+            <label class="form-label">Telefonnummer</label>
+            <input type="text" class="form-control" id="phone" placeholder="+49 170 1234567" />
+          </div>
 
-      </form>
-    </div>
+          <!-- NEU: E-Mail -->
+          <div class="mb-3">
+            <label class="form-label">E-Mail-Adresse</label>
+            <input type="email" class="form-control" id="email" placeholder="max@example.com" />
+          </div>
 
-    <!-- Job & Arbeitgeber -->
-    <div class="tab-pane fade" id="job" role="tabpanel">
-      <form id="formJob">
-        <div class="mb-3">
-          <label class="form-label">Stellenbezeichnung</label>
-          <input type="text" class="form-control" id="jobTitle" placeholder="z.B. Softwareentwickler (m/w/d)" />
-        </div>
-        <div class="mb-3">
-          <label class="form-label">Unternehmen</label>
-          <input type="text" class="form-control" id="company" placeholder="z.B. Cloudflight GmbH" />
-        </div>
-        <div class="mb-3">
-          <label class="form-label">Unternehmens-Website</label>
-          <input type="url" class="form-control" id="companyUrl" placeholder="https://..." />
-        </div>
-        <div class="mb-3">
-          <label class="form-label">Stellenbeschreibung</label>
-          <textarea class="form-control" id="jobDescription" rows="3"></textarea>
-        </div>
-      </form>
-    </div>
+          <!-- NEU: LinkedIn -->
+          <div class="mb-3">
+            <label class="form-label">LinkedIn Profil (optional)</label>
+            <input type="url" class="form-control" id="linkedin" placeholder="https://linkedin.com/in/username" />
+          </div>
 
-    <!-- Ergebnis -->
-    <div class="tab-pane fade" id="result" role="tabpanel">
-      <p>Wenn alles ausgefüllt ist, kannst du starten:</p>
-      <button class="btn btn-success" onclick="startAgent()">🚀 Bewerbung erstellen lassen</button>
-      <div id="loadingStatus" class="align-items-center my-3" hidden>
-          <div class="spinner-border text-primary me-3" role="status">
-            <span class="visually-hidden">Loading...</span>
-          </div>
-          <span id="loadingText">⏳ Der KI-Agent generiert dein Bewerbungsschreiben…</span>
-        </div>
-               
-    
+          <!-- Berufserfahrung -->
+          <div class="mb-3">
+            <div id="experienceContainer" class="list-group mb-3">
+              <div class="d-flex justify-content-between align-items-center">
+                <label class="form-label">Berufserfahrung</label>
+                <button type="button" class="btn btn-primary" onclick="addExperience()">➕ Neue Erfahrung</button>
+              </div>
+              <div id="experienceList" class="list-group mb-3"></div>
+            </div>
+          </div>
 
-      <div id="letterContainer" class="bg-white p-5 rounded shadow-sm mx-auto" style="max-width: 800px;">
-        <h2 class="mb-4 text-center text-primary">📄 Ihr Bewerbungsschreiben</h2>
-        <div id="responseOutput" class="text-start" style="font-family: 'Georgia', serif; font-size: 1.1rem; line-height: 1.7;"></div>
+          <!-- Schulbildung -->
+          <div class="mb-3">
+            <div id="educationContainer" class="list-group mb-3">
+              <div class="d-flex justify-content-between align-items-center">
+                <label class="form-label">Schulbildung / Ausbildung</label>
+                <button type="button" class="btn btn-primary" onclick="addEducation()">➕ Neue Ausbildung</button>
+              </div>
+              <div id="educationList" class="list-group mb-3"></div>
+            </div>
+          </div>
+
+          <!-- Praktika -->
+          <div class="mb-3">
+            <div id="internshipContainer" class="list-group mb-3">
+              <div class="d-flex justify-content-between align-items-center">
+                <label class="form-label">Praktika</label>
+                <button type="button" class="btn btn-primary" onclick="addInternship()">➕ Neues Praktikum</button>
+              </div>
+              <div id="internshipList" class="list-group mb-3"></div>
+            </div>
+          </div>
+
+          <!-- Lebenslauf-Upload -->
+          <div class="mb-3">
+            <label class="form-label">Lebenslauf (PDF)</label>
+            <input type="file" class="form-control" id="cvUpload" accept=".pdf" />
+            <button type="button" class="btn btn-secondary mt-2" onclick="uploadCV(event)">📤 PDF auslesen</button>
+            <div id="uploadStatus" class="form-text text-muted mt-1" style="display: none;">⏳ Wird analysiert...</div>
+          </div>
+
+        </form>
       </div>
-      
 
-      <button class="btn btn-outline-secondary mb-3" onclick="copyLetter()">📋 In Zwischenablage</button>
+      <!-- Job & Arbeitgeber -->
+      <div class="tab-pane fade" id="job" role="tabpanel">
+        <form id="formJob">
+          <div class="mb-3">
+            <label class="form-label">Stellenbezeichnung</label>
+            <input type="text" class="form-control" id="jobTitle" placeholder="z.B. Softwareentwickler (m/w/d)" />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Unternehmen</label>
+            <input type="text" class="form-control" id="company" placeholder="z.B. Cloudflight GmbH" />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Unternehmens-Website</label>
+            <input type="url" class="form-control" id="companyUrl" placeholder="https://..." />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Stellenbeschreibung</label>
+            <textarea class="form-control" id="jobDescription" rows="3"></textarea>
+          </div>
+        </form>
+      </div>
+
+      <!-- Ergebnis -->
+      <div class="tab-pane fade" id="result" role="tabpanel">
+        <p>Wenn alles ausgefüllt ist, kannst du starten:</p>
+        <button class="btn btn-success" onclick="startAgent()">🚀 Bewerbung erstellen lassen</button>
+        <div id="loadingStatus" class="align-items-center my-3" hidden>
+            <div class="spinner-border text-primary me-3" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+            <span id="loadingText">⏳ Der KI-Agent generiert dein Bewerbungsschreiben…</span>
+        </div>
+
+
+
+        <div id="letterContainer" class="bg-white p-5 rounded shadow-sm mx-auto" style="max-width: 800px;">
+          <h2 class="mb-4 text-center text-primary">📄 Ihr Bewerbungsschreiben</h2>
+          <div id="responseOutput" class="text-start"
+            style="font-family: 'Georgia', serif; font-size: 1.1rem; line-height: 1.7;"></div>
+        </div>
+
+
+        <button class="btn btn-outline-secondary mb-3" onclick="copyLetter()">📋 In Zwischenablage</button>
+      </div>
+
     </div>
-
   </div>
-</div>
 
   <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- SortableJS -->
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+  <!-- SortableJS -->
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 
 
   <!-- Custom Script -->
@@ -172,244 +177,244 @@
     let internshipData = [];
 
 
-async function startAgent() {
-  const data = {
-    name: document.getElementById('name').value,
-    birthdate: document.getElementById('birthdate').value,
-    address: document.getElementById('address').value,
-    phone: document.getElementById('phone').value,
-    email: document.getElementById('email').value,
-    linkedin: document.getElementById('linkedin').value,
-    jobTitle: document.getElementById('jobTitle').value,
-    company: document.getElementById('company').value,
-    companyUrl: document.getElementById('companyUrl').value,
-    jobDescription: document.getElementById('jobDescription').value,
-    experienceData: experienceData,
-    educationData: educationData,
-    internshipData: internshipData,
-  };
+    async function startAgent() {
+      const data = {
+        name: document.getElementById('name').value,
+        birthdate: document.getElementById('birthdate').value,
+        address: document.getElementById('address').value,
+        phone: document.getElementById('phone').value,
+        email: document.getElementById('email').value,
+        linkedin: document.getElementById('linkedin').value,
+        jobTitle: document.getElementById('jobTitle').value,
+        company: document.getElementById('company').value,
+        companyUrl: document.getElementById('companyUrl').value,
+        jobDescription: document.getElementById('jobDescription').value,
+        experienceData: experienceData,
+        educationData: educationData,
+        internshipData: internshipData,
+      };
 
 
 
-  if (!data.companyUrl || !data.name || !data.birthdate || !data.address || !data.jobTitle || !data.company || !data.jobDescription) {
-    alert('Bitte fülle alle Pflichtfelder aus.');
-    return;
-  }
+      if (!data.companyUrl || !data.name || !data.birthdate || !data.address || !data.jobTitle || !data.company || !data.jobDescription) {
+        alert('Bitte fülle alle Pflichtfelder aus.');
+        return;
+      }
 
-  const loadingStatus = document.getElementById('loadingStatus');
-  const loadingText = document.getElementById('loadingText');
+      const loadingStatus = document.getElementById('loadingStatus');
+      const loadingText = document.getElementById('loadingText');
 
-  loadingStatus.hidden = false;
-  loadingText.textContent = '⏳ Der KI-Agent generiert dein Bewerbungsschreiben…';
+      loadingStatus.hidden = false;
+      loadingText.textContent = '⏳ Der KI-Agent generiert dein Bewerbungsschreiben…';
 
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 60000);
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 60000);
 
-    const response = await fetch('/api/generate-cover-letter', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-      signal: controller.signal
-    });
+        const response = await fetch('/api/generate-cover-letter', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+          signal: controller.signal
+        });
 
-    clearTimeout(timeoutId);
-    const result = await response.json();
+        clearTimeout(timeoutId);
+        const result = await response.json();
 
-    if (response.ok) {
-      document.getElementById('responseOutput').innerHTML = formatLetter(result.coverLetter);
-      loadingText.textContent = '✅ Bewerbungsschreiben erfolgreich erstellt!';
-    } else {
-      document.getElementById('responseOutput').textContent = result.error || 'Fehler bei der Generierung des Bewerbungsschreibens.';
-      loadingText.textContent = '❌ Fehler beim Generieren des Schreibens.';
-    }
-  } catch (error) {
-    document.getElementById('responseOutput').textContent = 'Fehler beim Senden der Anfrage.';
-    loadingText.textContent = '❌ Fehler beim Senden der Anfrage.';
-    console.error(error);
-  } finally {
-    setTimeout(() => {
-      loadingStatus.hidden = true;
-    }, 2000);
-  }
-}
-
-
-
-
-
-
-
-// Upload Funktion    
-async function uploadCV(event) {
-  event.preventDefault(); // Verhindert Neuladen der Seite
-
-  const fileInput = document.getElementById('cvUpload');
-  const status = document.getElementById('uploadStatus');
-
-  if (!fileInput.files[0]) {
-    alert('Bitte eine PDF-Datei auswählen!');
-    return;
-  }
-
-  const formData = new FormData();
-  formData.append('cv', fileInput.files[0]);
-
-  status.style.display = 'inline';
-  status.textContent = '📤 Datei wird hochgeladen...';
-
-  try {
-    const res = await fetch('/api/upload-cv', {
-      method: 'POST',
-      body: formData,
-    });
-
-    const data = await res.json();
-    console.log("📦 Daten vom Server erhalten:", data);
-
-    if (!data.extracted) {
-      console.error("⚠️ Keine 'extracted'-Antwort vom Server erhalten!");
-      status.textContent = '⚠️ KI konnte keine Daten extrahieren. Bitte versuchen Sie es nochmals. Sollte der Fehler weiterhin bestehen, füllen Sie bitte die Formulardaten manuell aus.';
-      return;
+        if (response.ok) {
+          document.getElementById('responseOutput').innerHTML = formatLetter(result.coverLetter);
+          loadingText.textContent = '✅ Bewerbungsschreiben erfolgreich erstellt!';
+        } else {
+          document.getElementById('responseOutput').textContent = result.error || 'Fehler bei der Generierung des Bewerbungsschreibens.';
+          loadingText.textContent = '❌ Fehler beim Generieren des Schreibens.';
+        }
+      } catch (error) {
+        document.getElementById('responseOutput').textContent = 'Fehler beim Senden der Anfrage.';
+        loadingText.textContent = '❌ Fehler beim Senden der Anfrage.';
+        console.error(error);
+      } finally {
+        setTimeout(() => {
+          loadingStatus.hidden = true;
+        }, 2000);
+      }
     }
 
-    status.textContent = '✅ KI-Daten erhalten. Verarbeite Antwort...';
-    await delay(500); // kleine Pause, damit Status sichtbar bleibt
 
-    const json = data.extracted;
-    console.log("✅ Verarbeitetes JSON:", json);
 
-    if (json) {
-      console.log("➡️ Versuche, Felder zu befüllen...");
 
-      // Name
-      if (json.name) {
-        console.log("✏️ Name gefunden:", json.name);
-        document.getElementById('name').value = json.name;
+
+
+
+    // Upload Funktion    
+    async function uploadCV(event) {
+      event.preventDefault(); // Verhindert Neuladen der Seite
+
+      const fileInput = document.getElementById('cvUpload');
+      const status = document.getElementById('uploadStatus');
+
+      if (!fileInput.files[0]) {
+        alert('Bitte eine PDF-Datei auswählen!');
+        return;
       }
 
-      // Geburtsdatum (Konvertierung DD.MM.YYYY ➔ YYYY-MM-DD)
-      if (json.birthdate) {
-        console.log("✏️ Geburtsdatum gefunden:", json.birthdate);
-        const parts = json.birthdate.split('.');
-        if (parts.length === 3) {
-          const formattedDate = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
-          document.getElementById('birthdate').value = formattedDate;
-        } else {
-          console.warn("⚠️ Geburtsdatum konnte nicht umformatiert werden:", json.birthdate);
+      const formData = new FormData();
+      formData.append('cv', fileInput.files[0]);
+
+      status.style.display = 'inline';
+      status.textContent = '📤 Datei wird hochgeladen...';
+
+      try {
+        const res = await fetch('/api/upload-cv', {
+          method: 'POST',
+          body: formData,
+        });
+
+        const data = await res.json();
+        console.log("📦 Daten vom Server erhalten:", data);
+
+        if (!data.extracted) {
+          console.error("⚠️ Keine 'extracted'-Antwort vom Server erhalten!");
+          status.textContent = '⚠️ KI konnte keine Daten extrahieren. Bitte versuchen Sie es nochmals. Sollte der Fehler weiterhin bestehen, füllen Sie bitte die Formulardaten manuell aus.';
+          return;
         }
-      }
 
-      // Adresse
-      if (json.address) {
-        console.log("✏️ Adresse gefunden:", json.address);
-        document.getElementById('address').value = json.address;
-      }
+        status.textContent = '✅ KI-Daten erhalten. Verarbeite Antwort...';
+        await delay(500); // kleine Pause, damit Status sichtbar bleibt
 
-      // Telefon
-      if (json.phone) {
-        console.log("✏️ Telefon gefunden:", json.phone);
-        document.getElementById('phone').value = json.phone;
-      }
+        const json = data.extracted;
+        console.log("✅ Verarbeitetes JSON:", json);
 
-      // E-Mail
-      if (json.email) {
-        console.log("✏️ E-Mail gefunden:", json.email);
-        document.getElementById('email').value = json.email;
-      }
+        if (json) {
+          console.log("➡️ Versuche, Felder zu befüllen...");
 
-      // LinkedIn
-      if (json.linkedin) {
-        console.log("✏️ LinkedIn gefunden:", json.linkedin);
-        document.getElementById('linkedin').value = json.linkedin;
-      }
+          // Name
+          if (json.name) {
+            console.log("✏️ Name gefunden:", json.name);
+            document.getElementById('name').value = json.name;
+          }
 
-
-      // Berufserfahrungen
-      if (json.experience && Array.isArray(json.experience)) {
-        console.log("✏️ Strukturierte Berufserfahrungen gefunden:", json.experience);
-
-        const newExperiences = json.experience.map(exp => {
-            if (typeof exp === 'string') {
-                return { tätigkeit: exp, zeitraum: '', einrichtung: '' };
+          // Geburtsdatum (Konvertierung DD.MM.YYYY ➔ YYYY-MM-DD)
+          if (json.birthdate) {
+            console.log("✏️ Geburtsdatum gefunden:", json.birthdate);
+            const parts = json.birthdate.split('.');
+            if (parts.length === 3) {
+              const formattedDate = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+              document.getElementById('birthdate').value = formattedDate;
+            } else {
+              console.warn("⚠️ Geburtsdatum konnte nicht umformatiert werden:", json.birthdate);
             }
-            return {
+          }
+
+          // Adresse
+          if (json.address) {
+            console.log("✏️ Adresse gefunden:", json.address);
+            document.getElementById('address').value = json.address;
+          }
+
+          // Telefon
+          if (json.phone) {
+            console.log("✏️ Telefon gefunden:", json.phone);
+            document.getElementById('phone').value = json.phone;
+          }
+
+          // E-Mail
+          if (json.email) {
+            console.log("✏️ E-Mail gefunden:", json.email);
+            document.getElementById('email').value = json.email;
+          }
+
+          // LinkedIn
+          if (json.linkedin) {
+            console.log("✏️ LinkedIn gefunden:", json.linkedin);
+            document.getElementById('linkedin').value = json.linkedin;
+          }
+
+
+          // Berufserfahrungen
+          if (json.experience && Array.isArray(json.experience)) {
+            console.log("✏️ Strukturierte Berufserfahrungen gefunden:", json.experience);
+
+            const newExperiences = json.experience.map(exp => {
+              if (typeof exp === 'string') {
+                return { tätigkeit: exp, zeitraum: '', einrichtung: '' };
+              }
+              return {
                 tätigkeit: exp.tätigkeit || '',
                 zeitraum: exp.zeitraum || '',
                 einrichtung: exp.einrichtung || ''
-            };
+              };
             });
 
             // Alte Daten beibehalten, neue hinzufügen
             experienceData = [...experienceData, ...newExperiences];
 
             renderExperienceList();
-        }
+          }
 
-        // Schule
-        if (json.education && Array.isArray(json.education)) {
+          // Schule
+          if (json.education && Array.isArray(json.education)) {
             console.log("✏️ Schulbildung/Ausbildung gefunden:", json.education);
 
             const newEducation = json.education.map(edu => ({
-                abschluss: edu.abschluss || '',
-                schulname: edu.schulname || '',
-                zeitraum: edu.zeitraum || ''
+              abschluss: edu.abschluss || '',
+              schulname: edu.schulname || '',
+              zeitraum: edu.zeitraum || ''
             }));
 
             // Alte Daten beibehalten, neue hinzufügen
             educationData = [...educationData, ...newEducation];
 
             renderEducationList();
-        }
+          }
 
-        // Praktika
-        if (json.internships && Array.isArray(json.internships)) {
+          // Praktika
+          if (json.internships && Array.isArray(json.internships)) {
             console.log("✏️ Praktika gefunden:", json.internships);
 
             const newInternships = json.internships.map(intern => ({
-                praktikum: intern.praktikum || '',
-                zeitraum: intern.zeitraum || '',
-                unternehmen: intern.unternehmen || ''
+              praktikum: intern.praktikum || '',
+              zeitraum: intern.zeitraum || '',
+              unternehmen: intern.unternehmen || ''
             }));
 
             // Alte Daten beibehalten, neue hinzufügen
             internshipData = [...internshipData, ...newInternships];
 
             renderInternshipList();
+          }
+
+
+
+
+          status.textContent = '✅ Felder erfolgreich aus KI-Daten befüllt!';
+        } else {
+          console.error("⚠️ JSON war leer oder ungültig.");
+          status.textContent = '⚠️ KI-Antwort konnte nicht verarbeitet werden.';
         }
 
-    
-
-
-      status.textContent = '✅ Felder erfolgreich aus KI-Daten befüllt!';
-    } else {
-      console.error("⚠️ JSON war leer oder ungültig.");
-      status.textContent = '⚠️ KI-Antwort konnte nicht verarbeitet werden.';
+      } catch (err) {
+        console.error("❌ Schwerer Fehler bei Upload/Verarbeitung:", err);
+        status.textContent = '❌ Schwerer Fehler beim Upload oder bei der Analyse.';
+      }
     }
 
-  } catch (err) {
-    console.error("❌ Schwerer Fehler bei Upload/Verarbeitung:", err);
-    status.textContent = '❌ Schwerer Fehler beim Upload oder bei der Analyse.';
-  }
-}
+
+    // Hilfsfunktion für kleine Wartezeiten
+    function delay(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
 
 
-// Hilfsfunktion für kleine Wartezeiten
-function delay(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
+    // Rendern der Berufsausbildung
+    function renderExperienceList() {
+      const experienceList = document.getElementById('experienceList');
+      experienceList.innerHTML = '';
 
+      experienceData.forEach((exp, index) => {
+        const item = document.createElement('div');
+        item.className = 'list-group-item mb-3 shadow-sm rounded';
 
-// Rendern der Berufsausbildung
-function renderExperienceList() {
-  const experienceList = document.getElementById('experienceList');
-  experienceList.innerHTML = '';
-
-  experienceData.forEach((exp, index) => {
-    const item = document.createElement('div');
-    item.className = 'list-group-item mb-3 shadow-sm rounded';
-
-    item.innerHTML = `
+        item.innerHTML = `
       <div class="row g-3 align-items-center">
         <div class="col-md-1 d-flex align-items-center justify-content-center">
           <span class="drag-handle" style="cursor: grab;">☰</span>
@@ -436,20 +441,20 @@ function renderExperienceList() {
         </button>
       </div>
     `;
-    experienceList.appendChild(item);
-  });
-}
+        experienceList.appendChild(item);
+      });
+    }
 
-// Rendern der Schulbildung/Ausbildung
-function renderEducationList() {
-  const educationList = document.getElementById('educationList');
-  educationList.innerHTML = '';
+    // Rendern der Schulbildung/Ausbildung
+    function renderEducationList() {
+      const educationList = document.getElementById('educationList');
+      educationList.innerHTML = '';
 
-  educationData.forEach((edu, index) => {
-    const item = document.createElement('div');
-    item.className = 'list-group-item mb-3 shadow-sm rounded';
+      educationData.forEach((edu, index) => {
+        const item = document.createElement('div');
+        item.className = 'list-group-item mb-3 shadow-sm rounded';
 
-    item.innerHTML = `
+        item.innerHTML = `
       <div class="row g-3 align-items-center">
         <div class="col-md-1 d-flex align-items-center justify-content-center">
           <span class="drag-handle" style="cursor: grab;">☰</span>
@@ -476,20 +481,20 @@ function renderEducationList() {
         </button>
       </div>
     `;
-    educationList.appendChild(item);
-  });
-}
+        educationList.appendChild(item);
+      });
+    }
 
-// Rendern der Praktika
-function renderInternshipList() {
-  const internshipList = document.getElementById('internshipList');
-  internshipList.innerHTML = '';
+    // Rendern der Praktika
+    function renderInternshipList() {
+      const internshipList = document.getElementById('internshipList');
+      internshipList.innerHTML = '';
 
-  internshipData.forEach((intern, index) => {
-    const item = document.createElement('div');
-    item.className = 'list-group-item mb-3 shadow-sm rounded';
+      internshipData.forEach((intern, index) => {
+        const item = document.createElement('div');
+        item.className = 'list-group-item mb-3 shadow-sm rounded';
 
-    item.innerHTML = `
+        item.innerHTML = `
       <div class="row g-3 align-items-center">
         <div class="col-md-1 d-flex align-items-center justify-content-center">
           <span class="drag-handle" style="cursor: grab;">☰</span>
@@ -516,172 +521,173 @@ function renderInternshipList() {
         </button>
       </div>
     `;
-    internshipList.appendChild(item);
-  });
-}
+        internshipList.appendChild(item);
+      });
+    }
 
 
 
-// Update-Funktion für Berufsausbildungen
-function updateExperienceField(index, field, value) {
-  experienceData[index][field] = value;
-  console.log(`📝 Erfahrung ${index} - Feld ${field} aktualisiert auf:`, value);
-}
+    // Update-Funktion für Berufsausbildungen
+    function updateExperienceField(index, field, value) {
+      experienceData[index][field] = value;
+      console.log(`📝 Erfahrung ${index} - Feld ${field} aktualisiert auf:`, value);
+    }
 
-// Update-Funktion für Education
-function updateEducationField(index, field, value) {
-  educationData[index][field] = value;
-  console.log(`📝 Schulbildung ${index} - Feld ${field} aktualisiert auf:`, value);
-}
+    // Update-Funktion für Education
+    function updateEducationField(index, field, value) {
+      educationData[index][field] = value;
+      console.log(`📝 Schulbildung ${index} - Feld ${field} aktualisiert auf:`, value);
+    }
 
-// Update-Funktion für Internship
-function updateInternshipField(index, field, value) {
-  internshipData[index][field] = value;
-  console.log(`📝 Praktikum ${index} - Feld ${field} aktualisiert auf:`, value);
-}
+    // Update-Funktion für Internship
+    function updateInternshipField(index, field, value) {
+      internshipData[index][field] = value;
+      console.log(`📝 Praktikum ${index} - Feld ${field} aktualisiert auf:`, value);
+    }
 
 
-// Löschen der Berufsausbildungen
-function deleteExperience(index) {
-    if (confirm("Willst du diese Erfahrung wirklich löschen?")) {
+    // Löschen der Berufsausbildungen
+    function deleteExperience(index) {
+      if (confirm("Willst du diese Erfahrung wirklich löschen?")) {
         // Konsolenausgabe zum Prüfen des aktuellen Zustands
         console.log("Vor dem Löschen:", experienceData);
-        
+
         // Das Element löschen
         experienceData.splice(index, 1);
 
         // Konsolenausgabe nach dem Löschen
         console.log("Nach dem Löschen:", experienceData);
-        
+
         // Liste neu rendern
         renderExperienceList();
+      }
     }
-}
 
 
-// Löschen der Schulbildung/Ausbildung
-function deleteEducation(index) {
-  if (confirm("Willst du diese Schulbildung/Ausbildung wirklich löschen?")) {
-    educationData.splice(index, 1);
-    renderEducationList();
-  }
-}
-
-// Löschen des Praktikums
-function deleteInternship(index) {
-  if (confirm("Willst du dieses Praktikum wirklich löschen?")) {
-    internshipData.splice(index, 1);
-    renderInternshipList();
-  }
-}
-
-
-function editExperience(index) {
-  const exp = experienceData[index];
-  const tätigkeit = prompt("Tätigkeit bearbeiten:", exp.tätigkeit || '');
-  const zeitraum = prompt("Zeitraum bearbeiten:", exp.zeitraum || '');
-  const einrichtung = prompt("Einrichtung bearbeiten:", exp.einrichtung || '');
-
-  if (tätigkeit !== null && zeitraum !== null && einrichtung !== null) {
-    experienceData[index] = { tätigkeit, zeitraum, einrichtung };
-    renderExperienceList();
-  }
-}
-
-// Manuelles Hinzufügen von Berufserfahrungen
-function addExperience() {
-  experienceData.push({ tätigkeit: '', zeitraum: '', einrichtung: '' });
-  renderExperienceList();
-}
-
-// Manuelles Hinzufügen von Schulbildung/Ausbildung
-function addEducation() {
-  educationData.push({ abschluss: '', schulname: '', zeitraum: '' });
-  renderEducationList();
-}
-
-// Manuelles Hinzufügen von Praktika
-function addInternship() {
-  internshipData.push({ praktikum: '', zeitraum: '', unternehmen: '' });
-  renderInternshipList();
-}
-
-
-
-// Nach dem DOM-Render einmal Sortable aktivieren
-new Sortable(document.getElementById('experienceList'), {
-  animation: 150,
-  handle: '.drag-handle',
-  ghostClass: 'bg-light',
-  onEnd: function (evt) {
-    // Neue Reihenfolge übernehmen
-    const oldIndex = evt.oldIndex;
-    const newIndex = evt.newIndex;
-
-    if (oldIndex !== newIndex) {
-      const movedItem = experienceData.splice(oldIndex, 1)[0];
-      experienceData.splice(newIndex, 0, movedItem);
-      console.log("🔀 Neue Reihenfolge:", experienceData);
+    // Löschen der Schulbildung/Ausbildung
+    function deleteEducation(index) {
+      if (confirm("Willst du diese Schulbildung/Ausbildung wirklich löschen?")) {
+        educationData.splice(index, 1);
+        renderEducationList();
+      }
     }
-  }
-});
 
-new Sortable(document.getElementById('educationList'), {
-  animation: 150,
-  handle: '.drag-handle',
-  ghostClass: 'bg-light',
-  onEnd: function (evt) {
-    // Neue Reihenfolge übernehmen
-    const oldIndex = evt.oldIndex;
-    const newIndex = evt.newIndex;
-
-    if (oldIndex !== newIndex) {
-      const movedItem = educationData.splice(oldIndex, 1)[0];
-      educationData.splice(newIndex, 0, movedItem);
-      console.log("🔀 Neue Reihenfolge:", educationData);
+    // Löschen des Praktikums
+    function deleteInternship(index) {
+      if (confirm("Willst du dieses Praktikum wirklich löschen?")) {
+        internshipData.splice(index, 1);
+        renderInternshipList();
+      }
     }
-  }
-});
 
-new Sortable(document.getElementById('internshipList'), {
-  animation: 150,
-  handle: '.drag-handle',
-  ghostClass: 'bg-light',
-  onEnd: function (evt) {
-    // Neue Reihenfolge übernehmen
-    const oldIndex = evt.oldIndex;
-    const newIndex = evt.newIndex;
 
-    if (oldIndex !== newIndex) {
-      const movedItem = internshipData.splice(oldIndex, 1)[0];
-      internshipData.splice(newIndex, 0, movedItem);
-      console.log("🔀 Neue Reihenfolge:", internshipData);
+    function editExperience(index) {
+      const exp = experienceData[index];
+      const tätigkeit = prompt("Tätigkeit bearbeiten:", exp.tätigkeit || '');
+      const zeitraum = prompt("Zeitraum bearbeiten:", exp.zeitraum || '');
+      const einrichtung = prompt("Einrichtung bearbeiten:", exp.einrichtung || '');
+
+      if (tätigkeit !== null && zeitraum !== null && einrichtung !== null) {
+        experienceData[index] = { tätigkeit, zeitraum, einrichtung };
+        renderExperienceList();
+      }
     }
-  }
-});
+
+    // Manuelles Hinzufügen von Berufserfahrungen
+    function addExperience() {
+      experienceData.push({ tätigkeit: '', zeitraum: '', einrichtung: '' });
+      renderExperienceList();
+    }
+
+    // Manuelles Hinzufügen von Schulbildung/Ausbildung
+    function addEducation() {
+      educationData.push({ abschluss: '', schulname: '', zeitraum: '' });
+      renderEducationList();
+    }
+
+    // Manuelles Hinzufügen von Praktika
+    function addInternship() {
+      internshipData.push({ praktikum: '', zeitraum: '', unternehmen: '' });
+      renderInternshipList();
+    }
 
 
-function formatLetter(text) {
-  // Markdown **fett** in echtes HTML <strong> umwandeln
-  text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
 
-  // Absätze erkennen (2 oder mehr Zeilenumbrüche)
-  const paragraphs = text.trim().split(/\n\s*\n/);
+    // Nach dem DOM-Render einmal Sortable aktivieren
+    new Sortable(document.getElementById('experienceList'), {
+      animation: 150,
+      handle: '.drag-handle',
+      ghostClass: 'bg-light',
+      onEnd: function (evt) {
+        // Neue Reihenfolge übernehmen
+        const oldIndex = evt.oldIndex;
+        const newIndex = evt.newIndex;
 
-  return paragraphs
-    .map(p => `<p>${p.replace(/\n/g, ' ')}</p>`)
-    .join('');
-}
+        if (oldIndex !== newIndex) {
+          const movedItem = experienceData.splice(oldIndex, 1)[0];
+          experienceData.splice(newIndex, 0, movedItem);
+          console.log("🔀 Neue Reihenfolge:", experienceData);
+        }
+      }
+    });
+
+    new Sortable(document.getElementById('educationList'), {
+      animation: 150,
+      handle: '.drag-handle',
+      ghostClass: 'bg-light',
+      onEnd: function (evt) {
+        // Neue Reihenfolge übernehmen
+        const oldIndex = evt.oldIndex;
+        const newIndex = evt.newIndex;
+
+        if (oldIndex !== newIndex) {
+          const movedItem = educationData.splice(oldIndex, 1)[0];
+          educationData.splice(newIndex, 0, movedItem);
+          console.log("🔀 Neue Reihenfolge:", educationData);
+        }
+      }
+    });
+
+    new Sortable(document.getElementById('internshipList'), {
+      animation: 150,
+      handle: '.drag-handle',
+      ghostClass: 'bg-light',
+      onEnd: function (evt) {
+        // Neue Reihenfolge übernehmen
+        const oldIndex = evt.oldIndex;
+        const newIndex = evt.newIndex;
+
+        if (oldIndex !== newIndex) {
+          const movedItem = internshipData.splice(oldIndex, 1)[0];
+          internshipData.splice(newIndex, 0, movedItem);
+          console.log("🔀 Neue Reihenfolge:", internshipData);
+        }
+      }
+    });
 
 
-function copyLetter() {
-  const html = document.getElementById('responseOutput').innerText;
-  navigator.clipboard.writeText(html).then(() => {
-    alert('Anschreiben kopiert!');
-  });
-}
+    function formatLetter(text) {
+      // Markdown **fett** in echtes HTML <strong> umwandeln
+      text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+      // Absätze erkennen (2 oder mehr Zeilenumbrüche)
+      const paragraphs = text.trim().split(/\n\s*\n/);
+
+      return paragraphs
+        .map(p => `<p>${p.replace(/\n/g, ' ')}</p>`)
+        .join('');
+    }
+
+
+    function copyLetter() {
+      const html = document.getElementById('responseOutput').innerText;
+      navigator.clipboard.writeText(html).then(() => {
+        alert('Anschreiben kopiert!');
+      });
+    }
 
 
   </script>
 </body>
+
 </html>
