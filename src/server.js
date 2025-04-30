@@ -272,6 +272,11 @@ app.post('/api/generate-cover-letter', async (req, res) => {
     }
 
     try {
+        const today = new Date().toLocaleDateString('de-DE', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric'
+        });
         // 1. Abrufen des HTML-Inhalts der Unternehmensseite
         const companyHtmlContent = await fetchCompanyInfo(companyUrl);
         if (!companyHtmlContent) {
@@ -336,7 +341,7 @@ app.post('/api/generate-cover-letter', async (req, res) => {
           - einen klaren roten Faden verfolgen
           - professionell, höflich und überzeugend wirken
         - Struktur des Anschreibens:
-          1. Briefkopf (eigene Adresse, Datum, Empfängeradresse)
+          1. Briefkopf (eigene Adresse, Datum: ${today}, Empfängeradresse)
           2. Betreffzeile: „Bewerbung als ${jobTitle}“
           3. Anrede: „Sehr geehrte Damen und Herren,“ oder Name, falls bekannt (**Anrede ggf. manuell anpassen**)
           4. Einleitung: Persönlicher Einstieg mit Interesse an der Stelle und Bezug zum Unternehmen

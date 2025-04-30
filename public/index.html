@@ -172,7 +172,7 @@
     let internshipData = [];
 
 
-    async function startAgent() {
+async function startAgent() {
   const data = {
     name: document.getElementById('name').value,
     birthdate: document.getElementById('birthdate').value,
@@ -188,6 +188,8 @@
     educationData: educationData,
     internshipData: internshipData,
   };
+
+
 
   if (!data.companyUrl || !data.name || !data.birthdate || !data.address || !data.jobTitle || !data.company || !data.jobDescription) {
     alert('Bitte fülle alle Pflichtfelder aus.');
