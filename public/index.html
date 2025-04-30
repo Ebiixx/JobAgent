@@ -294,13 +294,27 @@
             <div id="responseOutput" class="mt-3" style="display: none"></div>
           </div>
 
-          <!-- Button-Zeile: links & rechts ausgerichtet -->
+          <!-- Neue Aktionen: Neu generieren / Kürzen / Verlängern -->
+          <div class="d-flex justify-content-center my-3 gap-2">
+            <button
+              class="btn btn-outline-warning"
+              onclick="regenerateLetter()"
+            >
+              🔄 Neu generieren
+            </button>
+            <button class="btn btn-outline-secondary" onclick="shortenLetter()">
+              ✂️ Kürzen
+            </button>
+            <button class="btn btn-outline-secondary" onclick="extendLetter()">
+              ➕ Verlängern
+            </button>
+          </div>
 
+          <!-- Button-Zeile: Zwischenablage, PDF, Bearbeiten, Speichern -->
           <div class="d-flex justify-content-between align-items-center mb-3">
             <button class="btn btn-outline-secondary" onclick="copyLetter()">
               📋 In Zwischenablage
             </button>
-
             <div>
               <button
                 id="exportPdfButton"
@@ -363,6 +377,9 @@
           educationData,
           internshipData,
           lastGeneratedLetterHTML,
+          lastAction, // letzte Aktion: "generate", "shorten" oder "extend"
+          extendCount,
+          shortenCount,
         };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
       }
@@ -395,6 +412,8 @@
         educationData = state.educationData || [];
         internshipData = state.internshipData || [];
         lastGeneratedLetterHTML = state.lastGeneratedLetterHTML || "";
+        extendCount = state.extendCount || 0;
+        shortenCount = state.shortenCount || 0;
 
         renderExperienceList();
         renderEducationList();
@@ -421,12 +440,15 @@
           .join(" ");
       }
 
-      // Anfang aller Daten-Arrays und Quill-Variable
+      // Daten-Arrays und Quill-Editor-Variable
       let experienceData = [];
       let educationData = [];
       let internshipData = [];
       let lastGeneratedLetterHTML = "";
       let quill;
+      let lastAction = "generate";
+      let extendCount = 0;
+      let shortenCount = 0;
 
       window.addEventListener("DOMContentLoaded", () => {
         // Quill initialisieren
@@ -448,6 +470,7 @@
           .forEach((el) => el.addEventListener("input", saveState));
       });
 
+      // Generierung des Anschreibens
       async function startAgent() {
         const data = {
           name: document.getElementById("name").value,
@@ -460,9 +483,9 @@
           company: document.getElementById("company").value,
           companyUrl: document.getElementById("companyUrl").value,
           jobDescription: document.getElementById("jobDescription").value,
-          experienceData: experienceData,
-          educationData: educationData,
-          internshipData: internshipData,
+          experienceData,
+          educationData,
+          internshipData,
         };
 
         if (
@@ -480,7 +503,6 @@
 
         const loadingStatus = document.getElementById("loadingStatus");
         const loadingText = document.getElementById("loadingText");
-
         loadingStatus.hidden = false;
         loadingText.textContent =
           "⏳ Der KI-Agent generiert dein Bewerbungsschreiben…";
@@ -501,17 +523,15 @@
 
           if (response.ok) {
             const formatted = formatLetter(result.coverLetter);
-            quill.clipboard.dangerouslyPasteHTML(formatted); // ✅ der richtige Weg
+            quill.clipboard.dangerouslyPasteHTML(formatted);
             lastGeneratedLetterHTML = formatted;
             document.getElementById("responseOutput").innerHTML = formatted;
-
             document.getElementById("responseOutput").style.display = "block";
             document.getElementById("editButton").hidden = false;
             document.getElementById("saveButton").hidden = true;
-
             loadingText.textContent =
               "✅ Bewerbungsschreiben erfolgreich erstellt!";
-
+            lastAction = "generate";
             saveState();
           } else {
             quill.root.innerHTML = "";
@@ -529,489 +549,419 @@
         }
       }
 
-      // Upload Funktion
-      async function uploadCV(event) {
-        event.preventDefault(); // Verhindert Neuladen der Seite
+      // Neu generieren: berücksichtigt lastAction
+      async function regenerateLetter() {
+        const loadingStatus = document.getElementById("loadingStatus");
+        const loadingText = document.getElementById("loadingText");
+        loadingStatus.hidden = false;
+        loadingText.textContent = "🔄 Neu generiere dein Anschreiben…";
 
+        // 1) Frisch generieren
+        await startAgent();
+
+        // 2) Gesammelte Kürzungen anwenden
+        if (shortenCount > 0) {
+          loadingText.textContent = `✂️ Wende Kürzung (${shortenCount}×) an…`;
+          await editLetter("shorten", shortenCount);
+        }
+
+        // 3) Gesammelte Verlängerungen anwenden
+        if (extendCount > 0) {
+          loadingText.textContent = `➕ Wende Verlängerung (${extendCount}×) an…`;
+          await editLetter("extend", extendCount);
+        }
+      }
+
+      // Kürzen- und Verlängern-Funktionen
+      async function shortenLetter() {
+        shortenCount++;
+        saveState();
+        await editLetter("shorten", shortenCount);
+      }
+
+      async function extendLetter() {
+        extendCount++;
+        saveState();
+        await editLetter("extend", extendCount);
+      }
+
+      async function editLetter(action, count = 1) {
+        const loadingStatus = document.getElementById("loadingStatus");
+        const loadingText = document.getElementById("loadingText");
+        loadingStatus.hidden = false;
+        loadingText.textContent =
+          action === "shorten"
+            ? "✂️ Kürze dein Anschreiben…"
+            : "➕ Verlängere dein Anschreiben…";
+
+        try {
+          const response = await fetch("/api/edit-cover-letter", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              coverLetterHTML: lastGeneratedLetterHTML,
+              action,
+              count,
+            }),
+          });
+          const result = await response.json();
+          if (response.ok && result.coverLetter) {
+            const formatted = formatLetter(result.coverLetter);
+            lastGeneratedLetterHTML = formatted;
+            document.getElementById("responseOutput").innerHTML = formatted;
+            lastAction = action;
+            saveState();
+            loadingText.textContent = "✅ Anschreiben aktualisiert!";
+          } else {
+            loadingText.textContent = "❌ Fehler beim Bearbeiten.";
+            console.error(result);
+          }
+        } catch (err) {
+          loadingText.textContent = "❌ Fehler beim Senden der Anfrage.";
+          console.error(err);
+        } finally {
+          setTimeout(() => {
+            loadingStatus.hidden = true;
+          }, 2000);
+        }
+      }
+
+      // Upload-Funktion
+      async function uploadCV(event) {
+        event.preventDefault();
         const fileInput = document.getElementById("cvUpload");
         const status = document.getElementById("uploadStatus");
-
         if (!fileInput.files[0]) {
           alert("Bitte eine PDF-Datei auswählen!");
           return;
         }
-
         const formData = new FormData();
         formData.append("cv", fileInput.files[0]);
-
         status.style.display = "inline";
         status.textContent = "📤 Datei wird hochgeladen...";
-
         try {
           const res = await fetch("/api/upload-cv", {
             method: "POST",
             body: formData,
           });
           const data = await res.json();
-          console.log("📦 Daten vom Server erhalten:", data);
-
           if (!data.extracted) {
-            console.error("⚠️ Keine 'extracted'-Antwort vom Server erhalten!");
             status.textContent =
-              "⚠️ KI konnte keine Daten extrahieren. Bitte versuchen Sie es nochmals. Sollte der Fehler weiterhin bestehen, füllen Sie bitte die Formulardaten manuell aus.";
+              "⚠️ KI konnte keine Daten extrahieren. Bitte versuche es erneut.";
             return;
           }
-
           status.textContent = "✅ KI-Daten erhalten. Verarbeite Antwort...";
-          await delay(500); // kleine Pause, damit Status sichtbar bleibt
-
+          await delay(500);
           const json = data.extracted;
-          console.log("✅ Verarbeitetes JSON:", json);
-          console.log("➡️ Versuche, Felder zu befüllen...");
-
-          // Name
-          if (json.name) {
-            console.log("✏️ Name gefunden:", json.name);
+          if (json.name)
             document.getElementById("name").value = toTitleCase(json.name);
-          }
-
-          // Geburtsdatum (Konvertierung DD.MM.YYYY ➔ YYYY-MM-DD)
           if (json.birthdate) {
-            console.log("✏️ Geburtsdatum gefunden:", json.birthdate);
             const parts = json.birthdate.split(".");
             if (parts.length === 3) {
-              const formattedDate = `${parts[2]}-${parts[1].padStart(
-                2,
-                "0"
-              )}-${parts[0].padStart(2, "0")}`;
-              document.getElementById("birthdate").value = formattedDate;
-            } else {
-              console.warn(
-                "⚠️ Geburtsdatum konnte nicht umformatiert werden:",
-                json.birthdate
-              );
+              document.getElementById("birthdate").value = `${
+                parts[2]
+              }-${parts[1].padStart(2, "0")}-${parts[0].padStart(2, "0")}`;
             }
           }
-
-          // Adresse
-          if (json.address) {
-            console.log("✏️ Adresse gefunden:", json.address);
+          if (json.address)
             document.getElementById("address").value = json.address;
-          }
-
-          // Telefon
-          if (json.phone) {
-            console.log("✏️ Telefon gefunden:", json.phone);
-            document.getElementById("phone").value = json.phone;
-          }
-
-          // E-Mail
-          if (json.email) {
-            console.log("✏️ E-Mail gefunden:", json.email);
-            document.getElementById("email").value = json.email;
-          }
-
-          // LinkedIn
-          if (json.linkedin) {
-            console.log("✏️ LinkedIn gefunden:", json.linkedin);
+          if (json.phone) document.getElementById("phone").value = json.phone;
+          if (json.email) document.getElementById("email").value = json.email;
+          if (json.linkedin)
             document.getElementById("linkedin").value = json.linkedin;
-          }
-
-          // Berufserfahrungen
-          if (json.experience && Array.isArray(json.experience)) {
-            console.log(
-              "✏️ Strukturierte Berufserfahrungen gefunden:",
-              json.experience
+          if (Array.isArray(json.experience)) {
+            experienceData.push(
+              ...json.experience.map((exp) =>
+                typeof exp === "string"
+                  ? { tätigkeit: exp, zeitraum: "", einrichtung: "" }
+                  : {
+                      tätigkeit: exp.tätigkeit || "",
+                      zeitraum: exp.zeitraum || "",
+                      einrichtung: exp.einrichtung || "",
+                    }
+              )
             );
-            const newExperiences = json.experience.map((exp) => {
-              if (typeof exp === "string") {
-                return { tätigkeit: exp, zeitraum: "", einrichtung: "" };
-              }
-              return {
-                tätigkeit: exp.tätigkeit || "",
-                zeitraum: exp.zeitraum || "",
-                einrichtung: exp.einrichtung || "",
-              };
-            });
-            experienceData = [...experienceData, ...newExperiences];
             renderExperienceList();
           }
-
-          // Schulbildung/Ausbildung
-          if (json.education && Array.isArray(json.education)) {
-            console.log("✏️ Schulbildung/Ausbildung gefunden:", json.education);
-            const newEducation = json.education.map((edu) => ({
-              abschluss: edu.abschluss || "",
-              schulname: edu.schulname || "",
-              zeitraum: edu.zeitraum || "",
-            }));
-            educationData = [...educationData, ...newEducation];
+          if (Array.isArray(json.education)) {
+            educationData.push(
+              ...json.education.map((edu) => ({
+                abschluss: edu.abschluss || "",
+                schulname: edu.schulname || "",
+                zeitraum: edu.zeitraum || "",
+              }))
+            );
             renderEducationList();
           }
-
-          // Praktika
-          if (json.internships && Array.isArray(json.internships)) {
-            console.log("✏️ Praktika gefunden:", json.internships);
-            const newInternships = json.internships.map((intern) => ({
-              praktikum: intern.praktikum || "",
-              zeitraum: intern.zeitraum || "",
-              unternehmen: intern.unternehmen || "",
-            }));
-            internshipData = [...internshipData, ...newInternships];
+          if (Array.isArray(json.internships)) {
+            internshipData.push(
+              ...json.internships.map((intern) => ({
+                praktikum: intern.praktikum || "",
+                unternehmen: intern.unternehmen || "",
+                zeitraum: intern.zeitraum || "",
+              }))
+            );
             renderInternshipList();
           }
-
-          status.textContent = "✅ Felder erfolgreich aus KI-Daten befüllt!";
-          // **Autosave**: alle soeben befüllten Felder landen jetzt im localStorage
+          status.textContent = "✅ Felder erfolgreich befüllt!";
           saveState();
         } catch (err) {
-          console.error("❌ Schwerer Fehler bei Upload/Verarbeitung:", err);
-          status.textContent =
-            "❌ Schwerer Fehler beim Upload oder bei der Analyse.";
+          status.textContent = "❌ Fehler beim Upload.";
+          console.error(err);
         }
       }
 
-      // Hilfsfunktion für kleine Wartezeiten
       function delay(ms) {
-        return new Promise((resolve) => setTimeout(resolve, ms));
+        return new Promise((r) => setTimeout(r, ms));
       }
 
-      // Rendern der Berufsausbildung
+      // Render-Funktionen
       function renderExperienceList() {
-        const experienceList = document.getElementById("experienceList");
-        experienceList.innerHTML = "";
-
-        experienceData.forEach((exp, index) => {
-          const item = document.createElement("div");
-          item.className = "list-group-item mb-3 shadow-sm rounded";
-
-          item.innerHTML = `
-      <div class="row g-3 align-items-center">
-        <div class="col-md-1 d-flex align-items-center justify-content-center">
-          <span class="drag-handle" style="cursor: grab;">☰</span>
+        const list = document.getElementById("experienceList");
+        list.innerHTML = "";
+        experienceData.forEach((exp, i) => {
+          const itm = document.createElement("div");
+          itm.className = "list-group-item mb-3 shadow-sm rounded";
+          itm.innerHTML = `
+        <div class="row g-3 align-items-center">
+          <div class="col-md-1 d-flex align-items-center justify-content-center">
+            <span class="drag-handle" style="cursor: grab;">☰</span>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Tätigkeit</label>
+            <input type="text" class="form-control" value="${
+              exp.tätigkeit || ""
+            }"
+                   onchange="updateExperienceField(${i}, 'tätigkeit', this.value)">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Unternehmen</label>
+            <input type="text" class="form-control" value="${
+              exp.einrichtung || ""
+            }"
+                   onchange="updateExperienceField(${i}, 'einrichtung', this.value)">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Zeitraum</label>
+            <input type="text" class="form-control" value="${
+              exp.zeitraum || ""
+            }"
+                   onchange="updateExperienceField(${i}, 'zeitraum', this.value)">
+          </div>
         </div>
-        <div class="col-md-4">
-          <label class="form-label">Praktikum</label>
-          <input type="text" class="form-control" value="${
-            exp.tätigkeit || ""
-          }" 
-            onchange="updateExperienceField(${index}, 'tätigkeit', this.value)">
-        </div>
-        <div class="col-md-4">
-          <label class="form-label">Unternehmen</label>
-           <input type="text" class="form-control" value="${
-             exp.einrichtung || ""
-           }" 
-            onchange="updateExperienceField(${index}, 'einrichtung', this.value)">
-        </div>
-        <div class="col-md-4">
-          <label class="form-label">Zeitraum</label>
-          <input type="text" class="form-control" value="${exp.zeitraum || ""}" 
-            onchange="updateExperienceField(${index}, 'zeitraum', this.value)">
-        </div>
-      </div>
-      <div class="text-end mt-2">
-        <button class="btn btn-sm btn-danger" onclick="deleteExperience(${index})">
-          🗑️ Löschen
-        </button>
-      </div>
-    `;
-          experienceList.appendChild(item);
+        <div class="text-end mt-2">
+          <button class="btn btn-sm btn-danger" onclick="deleteExperience(${i})">🗑️ Löschen</button>
+        </div>`;
+          list.appendChild(itm);
         });
       }
 
-      // Rendern der Schulbildung/Ausbildung
       function renderEducationList() {
-        const educationList = document.getElementById("educationList");
-        educationList.innerHTML = "";
-
-        educationData.forEach((edu, index) => {
-          const item = document.createElement("div");
-          item.className = "list-group-item mb-3 shadow-sm rounded";
-
-          item.innerHTML = `
-      <div class="row g-3 align-items-center">
-        <div class="col-md-1 d-flex align-items-center justify-content-center">
-          <span class="drag-handle" style="cursor: grab;">☰</span>
+        const list = document.getElementById("educationList");
+        list.innerHTML = "";
+        educationData.forEach((edu, i) => {
+          const itm = document.createElement("div");
+          itm.className = "list-group-item mb-3 shadow-sm rounded";
+          itm.innerHTML = `
+        <div class="row g-3 align-items-center">
+          <div class="col-md-1 d-flex align-items-center justify-content-center">
+            <span class="drag-handle" style="cursor: grab;">☰</span>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Abschluss</label>
+            <input type="text" class="form-control" value="${
+              edu.abschluss || ""
+            }"
+                   onchange="updateEducationField(${i}, 'abschluss', this.value)">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Schulname</label>
+            <input type="text" class="form-control" value="${
+              edu.schulname || ""
+            }"
+                   onchange="updateEducationField(${i}, 'schulname', this.value)">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Zeitraum</label>
+            <input type="text" class="form-control" value="${
+              edu.zeitraum || ""
+            }"
+                   onchange="updateEducationField(${i}, 'zeitraum', this.value)">
+          </div>
         </div>
-        <div class="col-md-4">
-          <label class="form-label">Abschluss</label>
-          <input type="text" class="form-control" value="${
-            edu.abschluss || ""
-          }" 
-            onchange="updateEducationField(${index}, 'abschluss', this.value)">
-        </div>
-        <div class="col-md-4">
-          <label class="form-label">Schulname</label>
-          <input type="text" class="form-control" value="${
-            edu.schulname || ""
-          }" 
-            onchange="updateEducationField(${index}, 'schulname', this.value)">
-        </div>
-        <div class="col-md-4">
-          <label class="form-label">Zeitraum</label>
-          <input type="text" class="form-control" value="${edu.zeitraum || ""}" 
-            onchange="updateEducationField(${index}, 'zeitraum', this.value)">
-        </div>
-      </div>
-      <div class="text-end mt-2">
-        <button class="btn btn-sm btn-danger" onclick="deleteEducation(${index})">
-          🗑️ Löschen
-        </button>
-      </div>
-    `;
-          educationList.appendChild(item);
+        <div class="text-end mt-2">
+          <button class="btn btn-sm btn-danger" onclick="deleteEducation(${i})">🗑️ Löschen</button>
+        </div>`;
+          list.appendChild(itm);
         });
       }
 
-      // Rendern der Praktika
       function renderInternshipList() {
-        const internshipList = document.getElementById("internshipList");
-        internshipList.innerHTML = "";
-
-        internshipData.forEach((intern, index) => {
-          const item = document.createElement("div");
-          item.className = "list-group-item mb-3 shadow-sm rounded";
-
-          item.innerHTML = `
-      <div class="row g-3 align-items-center">
-        <div class="col-md-1 d-flex align-items-center justify-content-center">
-          <span class="drag-handle" style="cursor: grab;">☰</span>
+        const list = document.getElementById("internshipList");
+        list.innerHTML = "";
+        internshipData.forEach((intern, i) => {
+          const itm = document.createElement("div");
+          itm.className = "list-group-item mb-3 shadow-sm rounded";
+          itm.innerHTML = `
+        <div class="row g-3 align-items-center">
+          <div class="col-md-1 d-flex align-items-center justify-content-center">
+            <span class="drag-handle" style="cursor: grab;">☰</span>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Praktikum</label>
+            <input type="text" class="form-control" value="${
+              intern.praktikum || ""
+            }"
+                   onchange="updateInternshipField(${i}, 'praktikum', this.value)">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Unternehmen</label>
+            <input type="text" class="form-control" value="${
+              intern.unternehmen || ""
+            }"
+                   onchange="updateInternshipField(${i}, 'unternehmen', this.value)">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Zeitraum</label>
+            <input type="text" class="form-control" value="${
+              intern.zeitraum || ""
+            }"
+                   onchange="updateInternshipField(${i}, 'zeitraum', this.value)">
+          </div>
         </div>
-        <div class="col-md-4">
-          <label class="form-label">Praktikum</label>
-          <input type="text" class="form-control" value="${
-            intern.praktikum || ""
-          }" 
-            onchange="updateInternshipField(${index}, 'praktikum', this.value)">
-        </div>
-        <div class="col-md-4">
-          <label class="form-label">Unternehmen</label>
-          <input type="text" class="form-control" value="${
-            intern.unternehmen || ""
-          }" 
-            onchange="updateInternshipField(${index}, 'unternehmen', this.value)">
-        </div>
-        <div class="col-md-4">
-          <label class="form-label">Zeitraum</label>
-          <input type="text" class="form-control" value="${
-            intern.zeitraum || ""
-          }" 
-            onchange="updateInternshipField(${index}, 'zeitraum', this.value)">
-        </div>
-      </div>
-      <div class="text-end mt-2">
-        <button class="btn btn-sm btn-danger" onclick="deleteInternship(${index})">
-          🗑️ Löschen
-        </button>
-      </div>
-    `;
-          internshipList.appendChild(item);
+        <div class="text-end mt-2">
+          <button class="btn btn-sm btn-danger" onclick="deleteInternship(${i})">🗑️ Löschen</button>
+        </div>`;
+          list.appendChild(itm);
         });
       }
 
-      // Update-Funktion für Berufsausbildungen
+      // Update-Funktionen
       function updateExperienceField(index, field, value) {
         experienceData[index][field] = value;
-        console.log(
-          `📝 Erfahrung ${index} - Feld ${field} aktualisiert auf:`,
-          value
-        );
+        saveState();
       }
-
-      // Update-Funktion für Education
       function updateEducationField(index, field, value) {
         educationData[index][field] = value;
-        console.log(
-          `📝 Schulbildung ${index} - Feld ${field} aktualisiert auf:`,
-          value
-        );
+        saveState();
       }
-
-      // Update-Funktion für Internship
       function updateInternshipField(index, field, value) {
         internshipData[index][field] = value;
-        console.log(
-          `📝 Praktikum ${index} - Feld ${field} aktualisiert auf:`,
-          value
-        );
+        saveState();
       }
 
-      // Löschen der Berufsausbildungen
+      // Löschen
       function deleteExperience(index) {
         if (confirm("Willst du diese Erfahrung wirklich löschen?")) {
-          // Konsolenausgabe zum Prüfen des aktuellen Zustands
-          console.log("Vor dem Löschen:", experienceData);
-
-          // Das Element löschen
           experienceData.splice(index, 1);
-
-          // Konsolenausgabe nach dem Löschen
-          console.log("Nach dem Löschen:", experienceData);
-
-          // Liste neu rendern
           renderExperienceList();
+          saveState();
         }
       }
-
-      // Löschen der Schulbildung/Ausbildung
       function deleteEducation(index) {
         if (
           confirm("Willst du diese Schulbildung/Ausbildung wirklich löschen?")
         ) {
           educationData.splice(index, 1);
           renderEducationList();
+          saveState();
         }
       }
-
-      // Löschen des Praktikums
       function deleteInternship(index) {
         if (confirm("Willst du dieses Praktikum wirklich löschen?")) {
           internshipData.splice(index, 1);
           renderInternshipList();
+          saveState();
         }
       }
 
-      function editExperience(index) {
-        const exp = experienceData[index];
-        const tätigkeit = prompt("Tätigkeit bearbeiten:", exp.tätigkeit || "");
-        const zeitraum = prompt("Zeitraum bearbeiten:", exp.zeitraum || "");
-        const einrichtung = prompt(
-          "Einrichtung bearbeiten:",
-          exp.einrichtung || ""
-        );
-
-        if (tätigkeit !== null && zeitraum !== null && einrichtung !== null) {
-          experienceData[index] = { tätigkeit, zeitraum, einrichtung };
-          renderExperienceList();
-        }
-      }
-
-      // Manuelles Hinzufügen von Berufserfahrungen
+      // Hinzufügen
       function addExperience() {
         experienceData.push({ tätigkeit: "", zeitraum: "", einrichtung: "" });
         renderExperienceList();
+        saveState();
       }
-
-      // Manuelles Hinzufügen von Schulbildung/Ausbildung
       function addEducation() {
         educationData.push({ abschluss: "", schulname: "", zeitraum: "" });
         renderEducationList();
+        saveState();
       }
-
-      // Manuelles Hinzufügen von Praktika
       function addInternship() {
-        internshipData.push({ praktikum: "", zeitraum: "", unternehmen: "" });
+        internshipData.push({ praktikum: "", unternehmen: "", zeitraum: "" });
         renderInternshipList();
+        saveState();
       }
 
-      // Nach dem DOM-Render einmal Sortable aktivieren
+      // Sortable-Init
       new Sortable(document.getElementById("experienceList"), {
         animation: 150,
         handle: ".drag-handle",
         ghostClass: "bg-light",
-        onEnd: function (evt) {
-          // Neue Reihenfolge übernehmen
-          const oldIndex = evt.oldIndex;
-          const newIndex = evt.newIndex;
-
-          if (oldIndex !== newIndex) {
-            const movedItem = experienceData.splice(oldIndex, 1)[0];
-            experienceData.splice(newIndex, 0, movedItem);
-            console.log("🔀 Neue Reihenfolge:", experienceData);
-          }
+        onEnd: (evt) => {
+          const [moved] = experienceData.splice(evt.oldIndex, 1);
+          experienceData.splice(evt.newIndex, 0, moved);
+          saveState();
         },
       });
-
       new Sortable(document.getElementById("educationList"), {
         animation: 150,
         handle: ".drag-handle",
         ghostClass: "bg-light",
-        onEnd: function (evt) {
-          // Neue Reihenfolge übernehmen
-          const oldIndex = evt.oldIndex;
-          const newIndex = evt.newIndex;
-
-          if (oldIndex !== newIndex) {
-            const movedItem = educationData.splice(oldIndex, 1)[0];
-            educationData.splice(newIndex, 0, movedItem);
-            console.log("🔀 Neue Reihenfolge:", educationData);
-          }
+        onEnd: (evt) => {
+          const [moved] = educationData.splice(evt.oldIndex, 1);
+          educationData.splice(evt.newIndex, 0, moved);
+          saveState();
         },
       });
-
       new Sortable(document.getElementById("internshipList"), {
         animation: 150,
         handle: ".drag-handle",
         ghostClass: "bg-light",
-        onEnd: function (evt) {
-          // Neue Reihenfolge übernehmen
-          const oldIndex = evt.oldIndex;
-          const newIndex = evt.newIndex;
-
-          if (oldIndex !== newIndex) {
-            const movedItem = internshipData.splice(oldIndex, 1)[0];
-            internshipData.splice(newIndex, 0, movedItem);
-            console.log("🔀 Neue Reihenfolge:", internshipData);
-          }
+        onEnd: (evt) => {
+          const [moved] = internshipData.splice(evt.oldIndex, 1);
+          internshipData.splice(evt.newIndex, 0, moved);
+          saveState();
         },
       });
 
+      // Markdown → HTML
       function formatLetter(text) {
-        // Markdown **fett** in echtes HTML <strong> umwandeln
         text = text.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
-
-        // Absätze erkennen (2 oder mehr Zeilenumbrüche)
         const paragraphs = text.trim().split(/\n\s*\n/);
-
         return paragraphs
           .map((p) => `<p>${p.replace(/\n/g, " ")}</p>`)
           .join("");
       }
 
+      // Kopieren
       function copyLetter() {
-        const html = quill.root.innerHTML;
-        navigator.clipboard.writeText(quill.getText()).then(() => {
-          alert("Anschreiben kopiert!");
-        });
+        navigator.clipboard
+          .writeText(quill.getText())
+          .then(() => alert("Anschreiben kopiert!"));
       }
 
-      // Wechsel zu Quill-Bearbeitungsmodus
+      // Edit Mode
       function enterEditMode() {
         document.getElementById("responseOutput").style.display = "none";
         document.getElementById("quillWrapper").style.display = "block";
-
-        quill.clipboard.dangerouslyPasteHTML(lastGeneratedLetterHTML || ""); // fallback auf leeren String
-
+        quill.clipboard.dangerouslyPasteHTML(lastGeneratedLetterHTML || "");
         document.getElementById("editButton").hidden = true;
         document.getElementById("saveButton").hidden = false;
       }
-
       function exitEditMode() {
-        const plainTextDiv = document.getElementById("responseOutput");
-        const wrapper = document.getElementById("quillWrapper");
-
-        // 1) Aktuelles Quill-HTML in die Variable schreiben
         lastGeneratedLetterHTML = quill.root.innerHTML;
-        // 2) Ausgabe damit updaten
-        plainTextDiv.innerHTML = lastGeneratedLetterHTML;
-        // 3) Und direkt in localStorage sichern
+        document.getElementById("responseOutput").innerHTML =
+          lastGeneratedLetterHTML;
         saveState();
-
-        // 4) Quill-Editor und Toolbar verbergen, Ausgabe wieder einblenden
-        wrapper.style.display = "none";
-        plainTextDiv.style.display = "block";
-
-        // 5) Buttons umschalten
+        document.getElementById("quillWrapper").style.display = "none";
+        document.getElementById("responseOutput").style.display = "block";
         document.getElementById("editButton").hidden = false;
         document.getElementById("saveButton").hidden = true;
       }
 
-      // === PDF-Export ohne Überschrift, höhere Auflösung ===
+      // PDF-Export
       function exportPdf() {
-        // Nur den reinen Brief exportieren, nicht den H2-Header
         const element = document.getElementById("responseOutput");
-        console.log("📄 PDF-Export gestartet (ohne Header)");
         html2pdf()
           .set({
             margin: 10,
@@ -1023,16 +973,10 @@
               letterRendering: true,
               useCORS: true,
             },
-            jsPDF: {
-              unit: "mm",
-              format: "a4",
-              orientation: "portrait",
-            },
+            jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
           })
           .from(element)
-          .save()
-          .then(() => console.log("✅ PDF-Export abgeschlossen"))
-          .catch((err) => console.error("❌ PDF-Export fehlgeschlagen", err));
+          .save();
       }
     </script>
   </body>

@@ -446,6 +446,63 @@ app.post("/api/generate-cover-letter", async (req, res) => {
   }
 });
 
+// POST-Route zum Kürzen/Verlängern bestehender Anschreiben
+app.post("/api/edit-cover-letter", async (req, res) => {
+  const { coverLetterHTML, action } = req.body;
+  if (!coverLetterHTML || !action) {
+    return res
+      .status(400)
+      .json({ error: "coverLetterHTML und action erforderlich." });
+  }
+
+  // 1) HTML → Plain-Text
+  const plainText = coverLetterHTML
+    .replace(/<\/p>/g, "\n\n")
+    .replace(/<[^>]+>/g, "")
+    .trim();
+
+  // 2) Prompt-Instruktion anhand der Aktion
+  let instruction;
+  if (action === "shorten") {
+    instruction =
+      "Bitte kürze das folgende Anschreiben auf etwa ${300} Wörter, behalte roten Faden und professionellen Ton bei.";
+  } else if (action === "extend") {
+    instruction =
+      "Bitte verlängere das folgende Anschreiben um ca. ${200 * count} Wörter, ergänze relevante Details und behalte den Stil bei.";
+  } else {
+    return res.status(400).json({ error: "Ungültige action." });
+  }
+
+  // 3) Zusätzliche Klartext-Anweisung, damit nur das Anschreiben zurückkommt
+  const prompt = `
+Du bist ein professioneller Bewerbungsschreiben-Coach.
+${instruction}
+
+Antworte **nur** mit dem bearbeiteten Anschreiben. Füge **keine** Erklärungen, Zusammenfassungen oder Code-Blöcke hinzu.
+
+"""${plainText}"""
+`;
+
+  try {
+    const aiResp = await askOpenAI([
+      { role: "system", content: "Du bist ein Assistent für Textbearbeitung." },
+      { role: "user", content: prompt },
+    ]);
+    let edited = aiResp.choices[0].message.content.trim();
+
+    // 4) Eventuelle Markdown-Codefences entfernen
+    edited = edited
+      .replace(/^```(?:\w*\n)?/, "")
+      .replace(/```$/, "")
+      .trim();
+
+    res.json({ coverLetter: edited });
+  } catch (err) {
+    console.error("Fehler beim Editieren:", err);
+    res.status(500).json({ error: "OpenAI Edit-Fehler." });
+  }
+});
+
 // Server starten
 app.listen(PORT, () => {
   console.log(`Server läuft auf http://localhost:${PORT}`);
