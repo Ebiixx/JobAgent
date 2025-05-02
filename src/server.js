@@ -563,8 +563,6 @@ async function fetchJobsAttempt(promptVersion) {
 // Ganz oben in src/server.js (nach den require-Statements):
 const parserRegistry = {
   stepstone: require("./parsers/stepstone").parseStepstoneJobs,
-  indeed: require("./parsers/indeed").parseIndeedJobs,
-  monster: require("./parsers/monster").parseMonsterJobs,
   // … weitere Quellen hier
 };
 
