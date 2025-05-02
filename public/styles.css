@@ -151,3 +151,13 @@ button.btn-sm.btn-danger:hover {
   overflow-y: auto;
   padding-bottom: 2rem;
 }
+
+#tab4-filters {
+  border: 1px solid #ddd;
+}
+#tab4-filters .form-check {
+  margin-right: 1rem;
+}
+#tab4-filters input[type="number"] {
+  max-width: 150px;
+}

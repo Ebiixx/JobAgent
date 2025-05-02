@@ -9,7 +9,9 @@ const upload = multer({ dest: "uploads/" });
 const fs = require("fs");
 const axios = require("axios");
 
-const { chromium } = require("playwright"); // NEU oben importieren
+const { chromium } = require("playwright");
+const geolib = require("geolib");
+const bodyParser = require("body-parser");
 
 const app = express();
 const PORT = 3000;
@@ -558,102 +560,114 @@ async function fetchJobsAttempt(promptVersion) {
 }
 
 // POST-Route für Jobsuche
+// Ganz oben in src/server.js (nach den require-Statements):
+const parserRegistry = {
+  stepstone: require("./parsers/stepstone").parseStepstoneJobs,
+  indeed: require("./parsers/indeed").parseIndeedJobs,
+  monster: require("./parsers/monster").parseMonsterJobs,
+  // … weitere Quellen hier
+};
+
 app.post("/api/search-jobs", async (req, res) => {
+  // 0) Default-Werte
   const {
-    name,
-    birthdate,
-    address,
-    phone,
-    email,
-    linkedin,
-    experienceData,
-    educationData,
-    internshipData,
+    experienceData = [],
+    filters = {},
+    geo = { lat: null, lon: null },
   } = req.body;
-
-  const basePrompt = `
-Act like ein erfahrener Karriereberater und Job-Finder. Analysiere das folgende Profil und finde **5 sehr gut passende, aktuelle Stellenangebote**:
-
-Name: ${name}
-Geburtsdatum: ${birthdate}
-Adresse: ${address}
-Telefon: ${phone}
-E-Mail: ${email}
-LinkedIn: ${linkedin ? linkedin : "Nicht angegeben"}
-
-Berufserfahrung:
-${
-  experienceData.length > 0
-    ? experienceData
-        .map(
-          (e, i) =>
-            `${i + 1}. ${e.tätigkeit} bei ${e.einrichtung} (${e.zeitraum})`
-        )
-        .join("\n")
-    : "Keine angegeben"
-}
-
-Ausbildung:
-${
-  educationData.length > 0
-    ? educationData
-        .map(
-          (e, i) => `${i + 1}. ${e.abschluss} an ${e.schulname} (${e.zeitraum})`
-        )
-        .join("\n")
-    : "Keine angegeben"
-}
-
-Praktika:
-${
-  internshipData.length > 0
-    ? internshipData
-        .map(
-          (e, i) =>
-            `${i + 1}. ${e.praktikum} bei ${e.unternehmen} (${e.zeitraum})`
-        )
-        .join("\n")
-    : "Keine angegeben"
-}
-
-Antwortformat:
-[
-  { "title": "...", "company": "...", "location": "...", "url": "..." }
-]
-
-⚠️ Antworte ausschließlich mit valider JSON-Syntax. Keine zusätzlichen Kommentare oder Erklärungen.
-
-Take a deep breath and work on this problem step-by-step.
-`.trim();
-
-  const retryPrompt =
-    basePrompt +
-    `
-
-‼️ Achte besonders darauf, nur korrektes JSON-Array zu liefern (kein Text davor oder danach). Format exakt wie vorgegeben!`;
+  const { sources = [], radiusKm = null } = filters;
 
   try {
-    let jobs = await fetchJobsAttempt(basePrompt);
+    // 1) OpenAI-Prompt für Job-Keywords
+    const systemPrompt = `
+Du antwortest **ausschließlich** mit einem reinen JSON-Array aus exakt 5 Job-Titeln.
+Keine Erklärungen oder sonstiger Text.`;
+    const profilePrompt = `
+Du bist ein Job-Matching-Experte. Analysiere dieses Profil und gib **nur** ein JSON-Array mit 5 Titeln zurück.
 
-    if (!jobs) {
-      console.warn(
-        "⚠️ Erster Versuch fehlgeschlagen. Warte 2 Sekunden, starte zweiten Versuch..."
-      );
-      await sleep(2000);
-      jobs = await fetchJobsAttempt(retryPrompt);
+Profil:
+${experienceData
+  .map(
+    (e, i) => `${i + 1}. ${e.tätigkeit} bei ${e.einrichtung} (${e.zeitraum})`
+  )
+  .join("\n")}
+`.trim();
+
+    const aiRes = await askOpenAI([
+      { role: "system", content: systemPrompt },
+      { role: "user", content: profilePrompt },
+    ]);
+
+    // 2) Roh-String säubern und JSON-parse
+    let raw = aiRes.choices[0].message.content.trim();
+    if (/^```/.test(raw)) {
+      raw = raw
+        .replace(/^```(?:json)?\r?\n/, "")
+        .replace(/```$/, "")
+        .trim();
+    }
+    let keywords;
+    try {
+      keywords = JSON.parse(raw);
+    } catch {
+      const m = raw.match(/\[\s*[\s\S]*\s*\]/);
+      if (m) keywords = JSON.parse(m[0]);
+      else throw new Error("Fehler beim Parsen der Job-Keywords");
+    }
+    console.log("✅ Parsed Keywords:", keywords);
+
+    // 3) Quellen-Fallback
+    const sourceKeys =
+      sources.length > 0 ? sources : Object.keys(parserRegistry);
+
+    // 4) Scraping pro Quelle mit Debug
+    const jobsBySource = await Promise.all(
+      sourceKeys.map(async (src) => {
+        console.log(`🔍 Running parser for source="${src}"…`);
+        const parser = parserRegistry[src];
+        if (typeof parser !== "function") {
+          console.warn(`⚠️ Kein Parser für "${src}" gefunden.`);
+          return [];
+        }
+        try {
+          const list = await parser(keywords);
+          console.log(`✅ ${src} returned ${list.length} jobs`);
+          return list.map((j) => ({ ...j, source: src }));
+        } catch (err) {
+          console.warn(`⚠️ Parser-Fehler bei "${src}":`, err.message);
+          return [];
+        }
+      })
+    );
+    let allJobs = jobsBySource.flat();
+
+    // 5) Umkreis-Filter (optional)
+    if (radiusKm != null && geo.lat != null && geo.lon != null) {
+      allJobs = allJobs.filter((job) => {
+        if (job.lat == null || job.lon == null) return true;
+        const dist = geolib.getDistance(
+          { latitude: job.lat, longitude: job.lon },
+          { latitude: geo.lat, longitude: geo.lon }
+        );
+        return dist <= radiusKm * 1000;
+      });
     }
 
-    if (!jobs) {
-      console.error("❌ Beide Versuche fehlgeschlagen.");
-      return res
-        .status(500)
-        .json({ error: "Job-Suche fehlgeschlagen: Antwort ungültig." });
-    }
-
-    res.json({ jobs });
+    // 6) Debug-Log & Antwort
+    console.log(`/api/search-jobs: returning ${allJobs.length} jobs`);
+    allJobs.forEach((job, i) =>
+      console.log(
+        `  [${i + 1}] ${job.title} @ ${job.company} (${job.location}) → ${
+          job.url
+        }`
+      )
+    );
+    return res.json({ jobs: allJobs });
   } catch (err) {
-    console.error("❌ Fehler bei /api/search-jobs:", err);
-    res.status(500).json({ error: "Interner Fehler bei der Job-Suche." });
+    console.error("/api/search-jobs error:", err);
+    return res
+      .status(500)
+      .json({ error: "Interner Fehler bei der Job-Suche." });
   }
 });
 
