@@ -57,6 +57,18 @@
             3. KI Agent starten
           </button>
         </li>
+        <li class="nav-item">
+          <button
+            class="nav-link"
+            id="search-tab"
+            data-bs-toggle="tab"
+            data-bs-target="#search"
+            type="button"
+            role="tab"
+          >
+            4. Jobsuche
+          </button>
+        </li>
       </ul>
 
       <!-- Tab Inhalte -->
@@ -340,6 +352,20 @@
               </button>
             </div>
           </div>
+        </div>
+        <div
+          class="tab-pane fade"
+          id="search"
+          role="tabpanel"
+          aria-labelledby="search-tab"
+        >
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3>Jobsuche</h3>
+            <button id="searchJobsBtn" class="btn btn-primary">
+              🔍 Jobs finden
+            </button>
+          </div>
+          <div id="jobResults" class="list-group"></div>
         </div>
       </div>
     </div>
@@ -1013,6 +1039,61 @@
           })
           .from(element)
           .save();
+      }
+
+      /* Jobsuche */
+      // 3) Event-Listener für den neuen Button
+      document
+        .getElementById("searchJobsBtn")
+        .addEventListener("click", searchJobs);
+
+      // 4) Die Suchfunktion
+      async function searchJobs() {
+        const payload = {
+          name: document.getElementById("name").value,
+          birthdate: document.getElementById("birthdate").value,
+          address: document.getElementById("address").value,
+          phone: document.getElementById("phone").value,
+          email: document.getElementById("email").value,
+          linkedin: document.getElementById("linkedin").value,
+          experienceData,
+          educationData,
+          internshipData,
+        };
+
+        const res = await fetch("/api/search-jobs", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        if (!res.ok) {
+          alert("Fehler bei der Jobsuche");
+          return;
+        }
+
+        const { jobs } = await res.json();
+        const container = document.getElementById("jobResults");
+        container.innerHTML = "";
+
+        if (!jobs.length) {
+          container.innerHTML =
+            '<div class="text-muted">Keine Jobs gefunden.</div>';
+          return;
+        }
+
+        // 5) Ergebnisse rendern
+        jobs.forEach((job) => {
+          const a = document.createElement("a");
+          a.href = job.url;
+          a.target = "_blank";
+          a.className = "list-group-item list-group-item-action mb-2";
+          a.innerHTML = `
+        <h5 class="mb-1">${job.title}</h5>
+        <p class="mb-1">${job.company} – ${job.location}</p>
+      `;
+          container.appendChild(a);
+        });
       }
     </script>
   </body>

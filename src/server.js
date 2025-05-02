@@ -335,6 +335,8 @@ app.post("/api/generate-cover-letter", async (req, res) => {
         Act like a professional Bewerbungsschreiben-Coach und Texter für Karriereunterlagen. Du hilfst seit 20 Jahren Bewerber:innen in Deutschland, herausragende, individuelle und auf die jeweilige Stelle zugeschnittene Anschreiben zu verfassen – mit einem Fokus auf Authentizität, Motivation und klarer Argumentationsstruktur.
         
         Dein Ziel ist es, ein vollständiges, detailreiches, professionelles und auf die ausgeschriebene Stelle maßgeschneidertes Bewerbungsschreiben zu erstellen, das Persönlichkeit, Motivation und relevante Qualifikationen in einem überzeugenden Text miteinander verbindet.
+
+        Nutze hierfür **genau ${targetWords} Wörter**.
         
         ### 🧾 Persönliche Angaben:
         - Name: ${name}
@@ -389,7 +391,7 @@ app.post("/api/generate-cover-letter", async (req, res) => {
         ---
         
         ### ✨ Anweisungen für das Bewerbungsschreiben:
-        - Verwende alle übermittelten Informationen zur Erstellung eines vollständigen Anschreibens mit **ca. ${targetWords} Wörtern**.
+        - Verwende alle übermittelten Informationen zur Erstellung eines vollständigen Anschreibens mit **mindestens ${targetWords} Wörtern**.
         - Identifiziere passende Stärken, Fachkenntnisse und Soft Skills aus den angegebenen Erfahrungen, Praktika und Ausbildungen.
         - Beziehe dich konkret auf Inhalte der Stellenanzeige.
         - Der Schreibstil soll:
@@ -503,6 +505,155 @@ Antworte **nur** mit dem bearbeiteten Anschreiben. Füge **keine** Erklärungen,
   } catch (err) {
     console.error("Fehler beim Editieren:", err);
     res.status(500).json({ error: "OpenAI Edit-Fehler." });
+  }
+});
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// Hilfsfunktion: Antwort parsen und prüfen
+async function parseJobsResponse(text) {
+  try {
+    // Erster Versuch: direktes Parsing
+    return JSON.parse(text);
+  } catch (err1) {
+    console.warn(
+      "⚠️ Direktes JSON-Parsing fehlgeschlagen. Versuche, reines Array zu extrahieren..."
+    );
+    const match = text.match(/\[\s*{[\s\S]*}\s*\]/);
+    if (match) {
+      try {
+        return JSON.parse(match[0]);
+      } catch (err2) {
+        console.error("❌ Repariertes Parsing ebenfalls fehlgeschlagen.", err2);
+        return null;
+      }
+    }
+    console.error("❌ Kein JSON-Array erkannt.");
+    return null;
+  }
+}
+
+// Funktion zum Anfragen bei OpenAI
+async function fetchJobsAttempt(promptVersion) {
+  const aiResponse = await askOpenAI([
+    {
+      role: "system",
+      content: "Du bist ein sehr erfahrener Karriereberater und Job-Finder.",
+    },
+    { role: "user", content: promptVersion },
+  ]);
+
+  const text = aiResponse.choices[0].message.content.trim();
+  const jobs = await parseJobsResponse(text);
+
+  // Strukturvalidierung
+  if (
+    Array.isArray(jobs) &&
+    jobs.every((job) => job.title && job.company && job.location && job.url)
+  ) {
+    return jobs;
+  }
+  console.error("❌ Strukturprüfung fehlgeschlagen.");
+  return null;
+}
+
+// POST-Route für Jobsuche
+app.post("/api/search-jobs", async (req, res) => {
+  const {
+    name,
+    birthdate,
+    address,
+    phone,
+    email,
+    linkedin,
+    experienceData,
+    educationData,
+    internshipData,
+  } = req.body;
+
+  const basePrompt = `
+Act like ein erfahrener Karriereberater und Job-Finder. Analysiere das folgende Profil und finde **5 sehr gut passende, aktuelle Stellenangebote**:
+
+Name: ${name}
+Geburtsdatum: ${birthdate}
+Adresse: ${address}
+Telefon: ${phone}
+E-Mail: ${email}
+LinkedIn: ${linkedin ? linkedin : "Nicht angegeben"}
+
+Berufserfahrung:
+${
+  experienceData.length > 0
+    ? experienceData
+        .map(
+          (e, i) =>
+            `${i + 1}. ${e.tätigkeit} bei ${e.einrichtung} (${e.zeitraum})`
+        )
+        .join("\n")
+    : "Keine angegeben"
+}
+
+Ausbildung:
+${
+  educationData.length > 0
+    ? educationData
+        .map(
+          (e, i) => `${i + 1}. ${e.abschluss} an ${e.schulname} (${e.zeitraum})`
+        )
+        .join("\n")
+    : "Keine angegeben"
+}
+
+Praktika:
+${
+  internshipData.length > 0
+    ? internshipData
+        .map(
+          (e, i) =>
+            `${i + 1}. ${e.praktikum} bei ${e.unternehmen} (${e.zeitraum})`
+        )
+        .join("\n")
+    : "Keine angegeben"
+}
+
+Antwortformat:
+[
+  { "title": "...", "company": "...", "location": "...", "url": "..." }
+]
+
+⚠️ Antworte ausschließlich mit valider JSON-Syntax. Keine zusätzlichen Kommentare oder Erklärungen.
+
+Take a deep breath and work on this problem step-by-step.
+`.trim();
+
+  const retryPrompt =
+    basePrompt +
+    `
+
+‼️ Achte besonders darauf, nur korrektes JSON-Array zu liefern (kein Text davor oder danach). Format exakt wie vorgegeben!`;
+
+  try {
+    let jobs = await fetchJobsAttempt(basePrompt);
+
+    if (!jobs) {
+      console.warn(
+        "⚠️ Erster Versuch fehlgeschlagen. Warte 2 Sekunden, starte zweiten Versuch..."
+      );
+      await sleep(2000);
+      jobs = await fetchJobsAttempt(retryPrompt);
+    }
+
+    if (!jobs) {
+      console.error("❌ Beide Versuche fehlgeschlagen.");
+      return res
+        .status(500)
+        .json({ error: "Job-Suche fehlgeschlagen: Antwort ungültig." });
+    }
+
+    res.json({ jobs });
+  } catch (err) {
+    console.error("❌ Fehler bei /api/search-jobs:", err);
+    res.status(500).json({ error: "Interner Fehler bei der Job-Suche." });
   }
 });
 
