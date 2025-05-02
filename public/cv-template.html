@@ -145,16 +145,20 @@
           style="transform: translate(-50%, -50%) translateZ(0px)"
         >
           <h2>Persönliche Daten</h2>
-          <p><strong>Name:</strong> NAME NACHNAME</p>
-          <p><strong>Geburtsdatum:</strong> TT.MM.JJJJ</p>
-          <p><strong>Adresse:</strong> Straße, PLZ Ort</p>
+          <p><strong>Name:</strong> {{name}}</p>
+          <p><strong>Geburtsdatum:</strong> {{birthdate}}</p>
+          <p><strong>Adresse:</strong> {{address}}</p>
           <p>
             <strong>E-Mail:</strong>
-            <a href="mailto:email@beispiel.de" style="color: #fff"
-              >email@beispiel.de</a
-            >
+            <a href="mailto:{{email}}" style="color: #fff">{{email}}</a>
           </p>
-          <p><strong>Telefon:</strong> +49 …</p>
+          <p><strong>Telefon:</strong> {{phone}}</p>
+          {{#if linkedin}}
+          <p>
+            <strong>LinkedIn:</strong>
+            <a href="{{linkedin}}" style="color: #fff">{{linkedin}}</a>
+          </p>
+          {{/if}}
         </section>
 
         <!-- Panel 2: Ausbildung -->
@@ -165,12 +169,9 @@
         >
           <h2>Ausbildung</h2>
           <ul>
-            <li><strong>Abitur:</strong> Schule X, JJJJ – JJJJ</li>
-            <li>
-              <strong>Finanzassistent:</strong> Fachbereich Versicherung, JJJJ –
-              JJJJ
-            </li>
-            <li><strong>Fachwirt:</strong> Versicherung & Finanzen, JJJJ</li>
+            {{#each education}}
+            <li><strong>{{abschluss}}:</strong> {{schulname}}, {{zeitraum}}</li>
+            {{/each}}
           </ul>
         </section>
 
@@ -182,8 +183,11 @@
         >
           <h2>Berufserfahrung</h2>
           <ul>
-            <li><strong>Position A:</strong> Firma A, JJJJ – JJJJ</li>
-            <li><strong>Position B:</strong> Firma B, JJJJ – JJJJ</li>
+            {{#each experience}}
+            <li>
+              <strong>{{tätigkeit}}:</strong> {{einrichtung}}, {{zeitraum}}
+            </li>
+            {{/each}}
           </ul>
         </section>
 
@@ -193,24 +197,20 @@
           data-z="-900"
           style="transform: translate(-50%, -50%) translateZ(-900px)"
         >
-          <h2>Praktika</h2>
+          <h2>Praktika & Sprachen</h2>
+          <h3>Praktika</h3>
           <ul>
-            <li><strong>Praktikum A:</strong> Einrichtung A, JJJJ</li>
-            <li><strong>Praktikum B:</strong> Einrichtung B, JJJJ</li>
+            {{#each internships}}
+            <li>
+              <strong>{{praktikum}}:</strong> {{unternehmen}}, {{zeitraum}}
+            </li>
+            {{/each}}
           </ul>
-        </section>
-
-        <!-- Panel 5: Sprachen -->
-        <section
-          class="panel"
-          data-z="-1200"
-          style="transform: translate(-50%, -50%) translateZ(-1200px)"
-        >
-          <h2>Sprachen</h2>
+          <h3>Sprachen</h3>
           <ul>
-            <li><strong>Deutsch:</strong> Muttersprache</li>
-            <li><strong>Englisch:</strong> Gute Kenntnisse</li>
-            <li><strong>Französisch:</strong> Grundkenntnisse</li>
+            {{#each languages}}
+            <li><strong>{{sprache}}:</strong> {{kenntnisse}}</li>
+            {{/each}}
           </ul>
         </section>
       </div>

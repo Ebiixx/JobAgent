@@ -142,6 +142,20 @@
                 placeholder="https://linkedin.com/in/username"
               />
             </div>
+            <!-- Sprachen -->
+            <div class="mb-3">
+              <label class="form-label">Sprachen</label>
+              <div id="languagesContainer" class="list-group mb-3">
+                <div id="languagesList" class="list-group"></div>
+                <button
+                  type="button"
+                  class="btn btn-primary"
+                  onclick="addLanguage()"
+                >
+                  ➕ Neue Sprache
+                </button>
+              </div>
+            </div>
 
             <!-- Berufserfahrung -->
             <div class="mb-3">
@@ -558,6 +572,7 @@
           lastAction, // letzte Aktion: "generate", "shorten" oder "extend"
           extendCount,
           shortenCount,
+          languagesData,
         };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
       }
@@ -592,10 +607,12 @@
         lastGeneratedLetterHTML = state.lastGeneratedLetterHTML || "";
         extendCount = state.extendCount || 0;
         shortenCount = state.shortenCount || 0;
+        languagesData = state.languagesData || [];
 
         renderExperienceList();
         renderEducationList();
         renderInternshipList();
+        renderLanguagesList();
 
         if (lastGeneratedLetterHTML) {
           document.getElementById("responseOutput").innerHTML =
@@ -627,6 +644,7 @@
       let lastAction = "generate";
       let extendCount = 0;
       let shortenCount = 0;
+      let languagesData = [];
 
       window.addEventListener("DOMContentLoaded", () => {
         // Quill initialisieren
@@ -884,38 +902,35 @@
           if (json.linkedin)
             document.getElementById("linkedin").value = json.linkedin;
           if (Array.isArray(json.experience)) {
-            experienceData.push(
-              ...json.experience.map((exp) =>
-                typeof exp === "string"
-                  ? { tätigkeit: exp, zeitraum: "", einrichtung: "" }
-                  : {
-                      tätigkeit: exp.tätigkeit || "",
-                      zeitraum: exp.zeitraum || "",
-                      einrichtung: exp.einrichtung || "",
-                    }
-              )
-            );
+            experienceData = json.experience.map((exp) => ({
+              tätigkeit: exp.tätigkeit || "",
+              einrichtung: exp.einrichtung || "",
+              zeitraum: exp.zeitraum || "",
+            }));
             renderExperienceList();
           }
           if (Array.isArray(json.education)) {
-            educationData.push(
-              ...json.education.map((edu) => ({
-                abschluss: edu.abschluss || "",
-                schulname: edu.schulname || "",
-                zeitraum: edu.zeitraum || "",
-              }))
-            );
+            educationData = json.education.map((edu) => ({
+              abschluss: edu.abschluss || "",
+              schulname: edu.schulname || "",
+              zeitraum: edu.zeitraum || "",
+            }));
             renderEducationList();
           }
           if (Array.isArray(json.internships)) {
-            internshipData.push(
-              ...json.internships.map((intern) => ({
-                praktikum: intern.praktikum || "",
-                unternehmen: intern.unternehmen || "",
-                zeitraum: intern.zeitraum || "",
-              }))
-            );
+            internshipData = json.internships.map((intern) => ({
+              praktikum: intern.praktikum || "",
+              unternehmen: intern.unternehmen || "",
+              zeitraum: intern.zeitraum || "",
+            }));
             renderInternshipList();
+          }
+          if (Array.isArray(json.languages)) {
+            languagesData = json.languages.map((lang) => ({
+              sprache: lang.sprache || "",
+              kenntnisse: lang.kenntnisse || "",
+            }));
+            renderLanguagesList();
           }
           status.textContent = "✅ Felder erfolgreich befüllt!";
           saveState();
@@ -1050,6 +1065,35 @@
         });
       }
 
+      function renderLanguagesList() {
+        const list = document.getElementById("languagesList");
+        list.innerHTML = "";
+        languagesData.forEach((lang, i) => {
+          const itm = document.createElement("div");
+          itm.className = "list-group-item mb-3 shadow-sm rounded";
+          itm.innerHTML = `
+      <div class="row g-3 align-items-center">
+        <div class="col-md-5">
+          <label class="form-label">Sprache</label>
+          <input type="text" class="form-control" value="${
+            lang.sprache || ""
+          }" onchange="updateLanguageField(${i}, 'sprache', this.value)">
+        </div>
+        <div class="col-md-5">
+          <label class="form-label">Kenntnisse</label>
+          <input type="text" class="form-control" value="${
+            lang.kenntnisse || ""
+          }" onchange="updateLanguageField(${i}, 'kenntnisse', this.value)">
+        </div>
+        <div class="col-md-2 text-end">
+          <button class="btn btn-sm btn-danger" onclick="deleteLanguage(${i})">🗑️ Löschen</button>
+        </div>
+      </div>
+    `;
+          list.appendChild(itm);
+        });
+      }
+
       // Update-Funktionen
       function updateExperienceField(index, field, value) {
         experienceData[index][field] = value;
@@ -1061,6 +1105,10 @@
       }
       function updateInternshipField(index, field, value) {
         internshipData[index][field] = value;
+        saveState();
+      }
+      function updateLanguageField(index, field, value) {
+        languagesData[index][field] = value;
         saveState();
       }
 
@@ -1088,6 +1136,13 @@
           saveState();
         }
       }
+      function deleteLanguage(index) {
+        if (confirm("Willst du diese Sprache wirklich löschen?")) {
+          languagesData.splice(index, 1);
+          renderLanguagesList();
+          saveState();
+        }
+      }
 
       // Hinzufügen
       function addExperience() {
@@ -1103,6 +1158,11 @@
       function addInternship() {
         internshipData.push({ praktikum: "", unternehmen: "", zeitraum: "" });
         renderInternshipList();
+        saveState();
+      }
+      function addLanguage() {
+        languagesData.push({ sprache: "", kenntnisse: "" });
+        renderLanguagesList();
         saveState();
       }
 
@@ -1366,177 +1426,50 @@
         spinner.hidden = false;
 
         try {
-          const name =
-            document.getElementById("name").value.trim() || "NAME NACHNAME";
-          const birthdate =
-            document.getElementById("birthdate").value || "TT.MM.JJJJ";
-          const address =
-            document.getElementById("address").value.trim() ||
-            "Straße, PLZ Ort";
-          const phone =
-            document.getElementById("phone").value.trim() || "+49 …";
-          const email =
-            document.getElementById("email").value.trim() ||
-            "email@beispiel.de";
-          const linkedin = document.getElementById("linkedin").value.trim();
-
           const saved = JSON.parse(localStorage.getItem("jobAgentState")) || {};
-          const experienceData = saved.experienceData || [];
-          const educationData = saved.educationData || [];
-          const internshipData = saved.internshipData || [];
 
-          const personalHtml = `
-      <section class="panel" data-z="0">
-        <h2>Persönliche Daten</h2>
-        <p><strong>Name:</strong> ${name}</p>
-        <p><strong>Geburtsdatum:</strong> ${birthdate}</p>
-        <p><strong>Adresse:</strong> ${address}</p>
-        <p><strong>Telefon:</strong> ${phone}</p>
-        <p><strong>E-Mail:</strong> <a href="mailto:${email}" style="color: #fff">${email}</a></p>
-        ${
-          linkedin
-            ? `<p><strong>LinkedIn:</strong> <a href="${linkedin}" style="color: #fff">${linkedin}</a></p>`
-            : ""
-        }
-      </section>`;
+          const payload = {
+            name: saved.name || "NAME NACHNAME",
+            birthdate: saved.birthdate || "TT.MM.JJJJ",
+            address: saved.address || "Straße, PLZ Ort",
+            phone: saved.phone || "+49 ...",
+            email: saved.email || "email@beispiel.de",
+            linkedin: saved.linkedin || "",
+            experience: saved.experienceData || [],
+            education: saved.educationData || [],
+            internships: saved.internshipData || [],
+            languages: saved.languagesData || [],
+          };
 
-          const educationHtml = `
-      <section class="panel" data-z="-300">
-        <h2>Ausbildung</h2>
-        <ul>${educationData
-          .map(
-            (edu) =>
-              `<li>${edu.abschluss} an ${edu.schulname} (${edu.zeitraum})</li>`
-          )
-          .join("")}</ul>
-      </section>`;
+          const res = await fetch("/api/generate-cv", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
 
-          const experienceHtml = `
-      <section class="panel" data-z="-600">
-        <h2>Berufserfahrung</h2>
-        <ul>${experienceData
-          .map(
-            (exp) =>
-              `<li>${exp.tätigkeit} bei ${exp.einrichtung} (${exp.zeitraum})</li>`
-          )
-          .join("")}</ul>
-      </section>`;
+          const data = await res.json();
 
-          const internshipsHtml = `
-      <section class="panel" data-z="-900">
-        <h2>Praktika</h2>
-        <ul>${internshipData
-          .map(
-            (intern) =>
-              `<li>${intern.praktikum} bei ${intern.unternehmen} (${intern.zeitraum})</li>`
-          )
-          .join("")}</ul>
-      </section>`;
-
-          const languagesHtml = `
-      <section class="panel" data-z="-1200">
-        <h2>Sprachen</h2>
-        <ul>
-          <li><strong>Deutsch:</strong> Muttersprache</li>
-          <li><strong>Englisch:</strong> Gute Kenntnisse</li>
-          <li><strong>Französisch:</strong> Grundkenntnisse</li>
-        </ul>
-      </section>`;
+          if (!res.ok) {
+            throw new Error(
+              data.error || "Fehler beim Generieren des Lebenslaufs."
+            );
+          }
 
           const popup = window.open(
             "",
             "_blank",
             "width=1200,height=800,scrollbars=yes"
           );
-
           if (!popup) {
-            alert("Popups blockiert! Bitte im Browser erlauben.");
+            alert("Popup-Blocker aktiv? Bitte erlauben!");
             return;
           }
 
-          popup.document.write(`
-<!DOCTYPE html>
-<html lang="de">
-<head>
-  <meta charset="UTF-8">
-  <title>HTML Lebenslauf</title>
-  <style>
-    html, body { margin: 0; padding: 0; height: 100%; background: #121212; color: #e0e0e0; font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; }
-    .scroll { height: calc((5 - 1) * 300px + 100vh); }
-    .top-nav { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); z-index: 20; display: flex; gap: 40px; pointer-events: auto; }
-    .nav-group { display: flex; gap: 20px; }
-    .nav-group a { color: #fff; text-decoration: none; font-weight: bold; cursor: pointer; }
-    .profile-img { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 3px solid #fff; }
-    .scene { position: fixed; top: 0; left: 0; width: 100%; height: 100%; perspective: 1200px; overflow: hidden; }
-    #container { position: absolute; width: 100%; height: 100%; transform-style: preserve-3d; }
-    .panel { position: absolute; width: 90%; height: 80%; left: 50%; top: 50%; transform: translate(-50%, -50%); background: rgba(20,20,20,0.9); border-radius: 10px; padding: 20px; overflow-y: auto; transition: opacity 0.2s ease-out; user-select: text; }
-    .panel h2 { text-align: center; }
-    .panel ul, .panel p { line-height: 1.5; }
-  </style>
-</head>
-<body>
-  <div class="scroll"></div>
-  <div class="top-nav">
-    <div class="nav-group">
-      <a href="#" onclick="flyToSection(0)">Persönliche Daten</a>
-      <a href="#" onclick="flyToSection(1)">Ausbildung</a>
-    </div>
-    <img src="Bild.png" class="profile-img" onerror="this.onerror=null; this.src='data:image/svg+xml;base64,...';">
-    <div class="nav-group">
-      <a href="#" onclick="flyToSection(2)">Berufserfahrung</a>
-      <a href="#" onclick="flyToSection(3)">Praktika</a>
-      <a href="#" onclick="flyToSection(4)">Sprachen</a>
-    </div>
-  </div>
-  <div class="scene">
-    <div id="container">
-      ${personalHtml}
-      ${educationHtml}
-      ${experienceHtml}
-      ${internshipsHtml}
-      ${languagesHtml}
-    </div>
-  </div>
-</body>
-</html>`);
+          popup.document.write(data.htmlCv);
           popup.document.close();
-
-          // Jetzt separates Script nach dem Close einfügen
-          const script = popup.document.createElement("script");
-          script.textContent = `
-const panelDistance = 300;
-const panelCount = 5;
-const maxScroll = (panelCount - 1) * panelDistance;
-const fadeRange = 150;
-const panels = document.querySelectorAll(".panel");
-const container = document.getElementById("container");
-
-window.addEventListener("scroll", () => {
-  let scrollPosition = window.scrollY;
-  scrollPosition = Math.min(Math.max(scrollPosition, 0), maxScroll);
-  const inverted = maxScroll - scrollPosition;
-  container.style.transform = "translateZ(" + inverted + "px)";
-  panels.forEach((panel) => {
-    const baseZ = parseFloat(panel.getAttribute("data-z"));
-    const effectiveZ = inverted + baseZ;
-    const absZ = Math.abs(effectiveZ);
-    panel.style.opacity = absZ > fadeRange ? 0 : 1 - absZ / fadeRange;
-  });
-});
-
-window.flyToSection = function(index) {
-  const target = maxScroll - index * panelDistance;
-  window.scrollTo({ top: target, behavior: "smooth" });
-};
-
-window.addEventListener("load", () => {
-  window.scrollTo({ top: maxScroll, behavior: "auto" });
-});
-`;
-          popup.document.body.appendChild(script);
         } catch (err) {
           console.error(err);
-          alert("Fehler beim Generieren: " + err.message);
+          alert("Fehler beim Generieren des Lebenslaufs: " + err.message);
         } finally {
           spinner.hidden = true;
           btn.disabled = false;

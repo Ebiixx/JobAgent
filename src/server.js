@@ -197,41 +197,47 @@ app.post("/api/upload-cv", upload.single("cv"), async (req, res) => {
     const extractedText = pdfData.text;
 
     const aiPrompt = `
-            Extrahiere aus diesem Lebenslauf folgende Informationen und gib die Antwort bitte **nur als JSON-Objekt** zurück:
+      Extrahiere aus diesem Lebenslauf folgende Informationen und gib die Antwort bitte **nur als JSON-Objekt** zurück:
 
-            {
-              "name": "",
-              "birthdate": "",
-              "address": "",
-              "phone": "",
-              "email": "",
-              "linkedin": "",
-              "experience": [
-                {
-                  "tätigkeit": "",
-                  "zeitraum": "",
-                  "einrichtung": ""
-                }
-              ],
-              "education": [
-                {
-                  "abschluss": "",
-                  "schulname": "",
-                  "zeitraum": ""
-                }
-              ],
-              "internships": [
-                {
-                  "praktikum": "",
-                  "zeitraum": "",
-                  "unternehmen": ""
-                }
-              ]
-            }
+      {
+        "name": "",
+        "birthdate": "",
+        "address": "",
+        "phone": "",
+        "email": "",
+        "linkedin": "",
+        "experience": [
+          {
+            "tätigkeit": "",
+            "einrichtung": "",
+            "zeitraum": ""
+          }
+        ],
+        "education": [
+          {
+            "abschluss": "",
+            "schulname": "",
+            "zeitraum": ""
+          }
+        ],
+        "internships": [
+          {
+            "praktikum": "",
+            "unternehmen": "",
+            "zeitraum": ""
+          }
+        ],
+        "languages": [
+          {
+            "sprache": "",
+            "kenntnisse": ""
+          }
+        ]
+      }
 
-            Hier ist der Lebenslauftext:
-            """${extractedText}"""
-          `;
+      Hier ist der Lebenslauftext:
+      """${extractedText}"""
+      `;
 
     const aiResponse = await askOpenAI([
       { role: "system", content: "Du bist ein hilfreicher CV-Parser." },
@@ -671,59 +677,6 @@ ${experienceData
   }
 });
 
-app.post("/api/generate-cv", async (req, res) => {
-  const {
-    name,
-    birthdate,
-    address,
-    phone,
-    email,
-    linkedin,
-    experience,
-    education,
-    internships,
-  } = req.body;
-
-  if (!name || !birthdate || !address) {
-    return res
-      .status(400)
-      .json({ error: "Bitte Name, Geburtsdatum und Adresse angeben." });
-  }
-
-  const prompt = `
-Erstelle auf Basis dieser Daten einen modernen HTML-Lebenslauf.
-Liefere ausschließlich den reinen <html>…</html>-Code zurück.
-
-Name: ${name}
-Geburtsdatum: ${birthdate}
-Adresse: ${address}
-Telefon: ${phone || "-"}
-E-Mail: ${email || "-"}
-${linkedin ? `LinkedIn: ${linkedin}` : ""}
-Erfahrung: ${JSON.stringify(experience)}
-Ausbildung: ${JSON.stringify(education)}
-Praktika: ${JSON.stringify(internships)}
-`;
-
-  try {
-    const aiResponse = await askOpenAI([
-      { role: "system", content: "Du bist ein CV-Generator." },
-      { role: "user", content: prompt },
-    ]);
-
-    let htmlCv = aiResponse.choices[0].message.content.trim();
-    // Entferne evtl. Markdown-Fences
-    htmlCv = htmlCv.replace(/^```html\s*/, "").replace(/```$/, "");
-
-    res.json({ htmlCv });
-  } catch (err) {
-    console.error("Fehler beim Generieren des Lebenslaufs:", err);
-    res
-      .status(500)
-      .json({ error: "Interner Serverfehler beim Erstellen des Lebenslaufs." });
-  }
-});
-
 // POST-Route: CV per Template rendern
 app.post("/api/generate-cv", express.json(), async (req, res) => {
   const {
@@ -736,9 +689,9 @@ app.post("/api/generate-cv", express.json(), async (req, res) => {
     experience = [],
     education = [],
     internships = [],
+    languages = [], // wichtig neu: languages
   } = req.body;
 
-  // Pflichtfelder prüfen
   if (!name || !birthdate || !address) {
     return res
       .status(400)
@@ -746,14 +699,12 @@ app.post("/api/generate-cv", express.json(), async (req, res) => {
   }
 
   try {
-    // Template laden
     const source = fs.readFileSync(
       path.join(__dirname, "../public/cv-template.html"),
       "utf8"
     );
     const template = Handlebars.compile(source);
 
-    // Daten injizieren
     const htmlCv = template({
       name,
       birthdate,
@@ -764,6 +715,7 @@ app.post("/api/generate-cv", express.json(), async (req, res) => {
       experience,
       education,
       internships,
+      languages, // neu hinzugefügt!
     });
 
     res.json({ htmlCv });
