@@ -662,7 +662,7 @@ ${experienceData
         }`
       )
     );
-    return res.json({ jobs: allJobs });
+    return res.json({ jobs: allJobs, keywords });
   } catch (err) {
     console.error("/api/search-jobs error:", err);
     return res

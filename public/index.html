@@ -1220,8 +1220,8 @@
           return alert("Fehler bei der Jobsuche (Server 500).");
         }
 
-        // 8) Ergebnisse holen & rendern
-        const { jobs } = await res.json();
+        // 8) Ergebnisse holen & gruppiert rendern
+        const { jobs, keywords } = await res.json();
         const container = document.getElementById("jobResults");
         container.innerHTML = "";
 
@@ -1231,23 +1231,54 @@
           return;
         }
 
-        for (const job of jobs) {
-          const a = document.createElement("a");
-          a.href = job.url;
-          a.target = "_blank";
-          a.className = "list-group-item list-group-item-action mb-2";
-          a.innerHTML = `
-      <h5 class="mb-1">${job.title}</h5>
-      <p class="mb-1">
-        ${job.company} – ${job.location}
-        <small class="text-muted">[${job.source}]</small>
-      </p>
-    `;
-          container.appendChild(a);
+        // Jobs nach Keyword gruppieren
+        const jobsByKw = {};
+        jobs.forEach((job) => {
+          if (!jobsByKw[job.keyword]) jobsByKw[job.keyword] = [];
+          jobsByKw[job.keyword].push(job);
+        });
+
+        // Für jedes Keyword eine Sektion bauen
+        for (const kw of keywords) {
+          const section = document.createElement("div");
+          section.className = "mb-5";
+
+          // Überschrift
+          const h4 = document.createElement("h4");
+          h4.textContent = `🔍 Suchbegriff: ${kw}`;
+          section.appendChild(h4);
+
+          // Card-Container (Bootstrap Grid)
+          const row = document.createElement("div");
+          row.className = "row g-4";
+
+          (jobsByKw[kw] || []).forEach((job) => {
+            const col = document.createElement("div");
+            col.className = "col-12 col-md-6 col-lg-4";
+
+            col.innerHTML = `
+        <div class="card h-100 shadow-sm">
+          <div class="card-body d-flex flex-column">
+            <h5 class="card-title">${job.title}</h5>
+            <p class="card-text mb-2">
+              <strong>${job.company}</strong><br/>
+              <small class="text-muted">${job.location}</small>
+            </p>
+            <a href="${job.url}" target="_blank" class="mt-auto btn btn-outline-primary">
+              Stellenangebot öffnen
+            </a>
+          </div>
+        </div>
+      `;
+            row.appendChild(col);
+          });
+
+          section.appendChild(row);
+          container.appendChild(section);
         }
       }
 
-      // Listener unverändert
+      // Listener bleibt unverändert
       document
         .getElementById("searchJobsBtn")
         .addEventListener("click", searchJobs);
