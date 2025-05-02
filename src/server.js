@@ -689,7 +689,8 @@ app.post("/api/generate-cv", express.json(), async (req, res) => {
     experience = [],
     education = [],
     internships = [],
-    languages = [], // wichtig neu: languages
+    languages = [],
+    photo = "",
   } = req.body;
 
   if (!name || !birthdate || !address) {
@@ -715,7 +716,8 @@ app.post("/api/generate-cv", express.json(), async (req, res) => {
       experience,
       education,
       internships,
-      languages, // neu hinzugefügt!
+      languages,
+      photo,
     });
 
     res.json({ htmlCv });
@@ -725,6 +727,34 @@ app.post("/api/generate-cv", express.json(), async (req, res) => {
       .status(500)
       .json({ error: "Serverfehler beim Erstellen des Lebenslaufs." });
   }
+});
+
+// ⚡️ Für Foto-Uploads
+const upload_photo = multer({
+  storage: multer.diskStorage({
+    destination: function (req, file, cb) {
+      cb(null, path.join(__dirname, "../public/uploads")); // richtig in public/uploads speichern
+    },
+    filename: function (req, file, cb) {
+      const uniqueName =
+        Date.now() +
+        "-" +
+        Math.round(Math.random() * 1e9) +
+        path.extname(file.originalname);
+      cb(null, uniqueName);
+    },
+  }),
+});
+
+// Fotos hochladen
+app.post("/api/upload-photo", upload_photo.single("photo"), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: "Kein Foto hochgeladen." });
+  }
+
+  const publicUrl = `/uploads/${req.file.filename}`; // ACHTUNG: nur /uploads/, nicht ../public!
+  console.log(`📸 Foto gespeichert: ${publicUrl}`);
+  res.json({ url: publicUrl });
 });
 
 // Server starten

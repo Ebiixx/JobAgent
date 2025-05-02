@@ -490,42 +490,11 @@
             class="cv-profile-input mb-3"
           />
           <img
-            src="Bild.png"
+            src="uploadedPhotoUrl"
             alt="Profilfoto"
             class="profile-img mb-3"
             onerror="this.onerror=null; this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0nMTUwJyBoZWlnaHQ9JzE1MCcgeG1sbnM9J2h0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnJz48cmVjdCB3aWR0aD0nMTUwJyBoZWlnaHQ9JzE1MCcgZmlsbD0nI2RkZCcgcng9JzE1Jy8+PHRleHQgeD0nNzUnIHk9Jzc1JyBmb250LXNpemU9JzE4JyB0ZXh0LWFuY2hvcj0nbWlkZGxlJyBmaWxsPScjNjY2Jz5uL2E8L3RleHQ+PC9zdmc+';"
           />
-
-          <!-- Scroll-Navigationsbuttons -->
-          <div class="cv-top-nav mb-3">
-            <button
-              class="btn btn-outline-secondary btn-sm me-1"
-              onclick="flyTo(0)"
-            >
-              Profil
-            </button>
-            <button
-              class="btn btn-outline-secondary btn-sm me-1"
-              onclick="flyTo(1)"
-            >
-              Erfahrung
-            </button>
-            <button
-              class="btn btn-outline-secondary btn-sm me-1"
-              onclick="flyTo(2)"
-            >
-              Ausbildung
-            </button>
-            <button
-              class="btn btn-outline-secondary btn-sm me-1"
-              onclick="flyTo(3)"
-            >
-              Skills
-            </button>
-            <button class="btn btn-outline-secondary btn-sm" onclick="flyTo(4)">
-              Kontakt
-            </button>
-          </div>
         </div>
       </div>
     </div>
@@ -645,6 +614,7 @@
       let extendCount = 0;
       let shortenCount = 0;
       let languagesData = [];
+      let uploadedPhotoUrl = "";
 
       window.addEventListener("DOMContentLoaded", () => {
         // Quill initialisieren
@@ -664,6 +634,13 @@
             "#formPersonal input, #formJob input, #formJob textarea"
           )
           .forEach((el) => el.addEventListener("input", saveState));
+
+        // Foto setzen
+        document
+          .getElementById("cv-photo-input")
+          .addEventListener("change", async () => {
+            await uploadPhoto();
+          });
       });
 
       // Generierung des Anschreibens
@@ -1439,6 +1416,7 @@
             education: saved.educationData || [],
             internships: saved.internshipData || [],
             languages: saved.languagesData || [],
+            photo: uploadedPhotoUrl || "", // Nur merken, nicht nochmal hochladen!
           };
 
           const res = await fetch("/api/generate-cv", {
@@ -1473,6 +1451,35 @@
         } finally {
           spinner.hidden = true;
           btn.disabled = false;
+        }
+      }
+
+      async function uploadPhoto() {
+        const fileInput = document.getElementById("cv-photo-input");
+        if (!fileInput.files.length) return "";
+
+        const formData = new FormData();
+        formData.append("photo", fileInput.files[0]);
+
+        try {
+          const res = await fetch("/api/upload-photo", {
+            method: "POST",
+            body: formData,
+          });
+
+          const data = await res.json();
+          if (res.ok && data.url) {
+            const imgEl = document.querySelector(".profile-img");
+            imgEl.src = data.url; // Vorschau aktualisieren
+            uploadedPhotoUrl = data.url; // Pfad merken
+            return data.url;
+          } else {
+            console.error("Upload-Fehler:", data.error);
+            return "";
+          }
+        } catch (err) {
+          console.error("Upload-Fehler:", err);
+          return "";
         }
       }
     </script>
