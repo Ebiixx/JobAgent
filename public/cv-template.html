@@ -17,7 +17,7 @@
       }
       /* Unsichtbarer Scrollbereich: 5 Panels -> (5-1)*300px + 100vh */
       .scroll {
-        height: calc((5 - 1) * 300px + 100vh);
+        height: calc((4 - 1) * 300px + 100vh);
       }
       /* Top Navigation: Profilbild in der Mitte mit Kategorien links und rechts */
       .top-nav {
@@ -130,7 +130,6 @@
       <div class="nav-group">
         <a onclick="flyToSection(2)">Berufserfahrung</a>
         <a onclick="flyToSection(3)">Praktika</a>
-        <a onclick="flyToSection(4)">Sprachen</a>
       </div>
     </div>
 
@@ -158,6 +157,13 @@
             <strong>LinkedIn:</strong>
             <a href="{{linkedin}}" style="color: #fff">{{linkedin}}</a>
           </p>
+          {{/if}} {{#if languages.length}}
+          <h3>Sprachen</h3>
+          <ul>
+            {{#each languages}}
+            <li><strong>{{sprache}}:</strong> {{kenntnisse}}</li>
+            {{/each}}
+          </ul>
           {{/if}}
         </section>
 
@@ -197,19 +203,12 @@
           data-z="-900"
           style="transform: translate(-50%, -50%) translateZ(-900px)"
         >
-          <h2>Praktika & Sprachen</h2>
-          <h3>Praktika</h3>
+          <h2>Praktika</h2>
           <ul>
             {{#each internships}}
             <li>
               <strong>{{praktikum}}:</strong> {{unternehmen}}, {{zeitraum}}
             </li>
-            {{/each}}
-          </ul>
-          <h3>Sprachen</h3>
-          <ul>
-            {{#each languages}}
-            <li><strong>{{sprache}}:</strong> {{kenntnisse}}</li>
             {{/each}}
           </ul>
         </section>
@@ -219,7 +218,7 @@
     <script>
       // Panel-Abstand und Scroll-Berechnung
       const panelDistance = 300;
-      const panelCount = 5;
+      const panelCount = 4;
       const maxScroll = (panelCount - 1) * panelDistance;
       const fadeRange = 150;
       const panels = document.querySelectorAll(".panel");
