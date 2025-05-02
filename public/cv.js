@@ -10,29 +10,44 @@ const panelCount = 5;
 const maxScroll = (panelCount - 1) * panelDepth;
 let cvContainer;
 
-export function buildCV() {
-  cvContainer = document.getElementById("container");
-  if (!cvContainer) {
+// cv.js
+export function buildCV(
+  container,
+  personalHtml,
+  educationHtml,
+  experienceHtml,
+  internshipsHtml
+) {
+  if (!container) {
     console.error("Container-Element nicht gefunden!");
     return;
   }
 
-  cvContainer.innerHTML = "";
+  container.innerHTML = "";
+
   const sections = [
-    { title: "Persönliche Daten", content: renderPersonal() },
-    { title: "Ausbildung", content: renderEducation() },
-    { title: "Berufserfahrung", content: renderExperience() },
-    { title: "Praktika", content: renderInternship() },
+    { title: "Persönliche Daten", content: personalHtml },
+    { title: "Ausbildung", content: educationHtml },
+    { title: "Berufserfahrung", content: experienceHtml },
+    { title: "Praktika", content: internshipsHtml },
     { title: "Sprachen", content: renderLanguages() },
   ];
 
-  sections.forEach((sec, i) => {
-    const s = document.createElement("section");
-    s.className = "panel";
-    s.style.transform = `translate(-50%, -50%) translateZ(-${i * 300}px)`;
-    s.innerHTML = `<h2>${sec.title}</h2>${sec.content}`;
-    cvContainer.appendChild(s);
+  sections.forEach((sec) => {
+    const sectionEl = document.createElement("section");
+    sectionEl.className = "cv-section"; // einfache Klasse, ohne 3D
+    sectionEl.innerHTML = `<h2>${sec.title}</h2>${sec.content}`;
+    container.appendChild(sectionEl);
   });
+}
+
+function renderLanguages() {
+  return `
+    <ul>
+      <li><strong>Deutsch:</strong> Muttersprache</li>
+      <li><strong>Englisch:</strong> Gute Kenntnisse</li>
+    </ul>
+  `;
 }
 
 function renderPersonal() {
@@ -87,44 +102,4 @@ function renderInternship() {
       .join("") +
     "</ul>"
   );
-}
-
-function renderLanguages() {
-  return `
-    <ul>
-      <li><strong>Deutsch:</strong> Muttersprache</li>
-      <li><strong>Englisch:</strong> Gute Kenntnisse</li>
-    </ul>
-  `;
-}
-
-// Scroll- und Navigation-Handler
-export function initCV() {
-  cvContainer = document.getElementById("container");
-  if (!cvContainer) {
-    console.error("Container nicht gefunden beim Initialisieren des CV!");
-    return;
-  }
-
-  buildCV(); // generiere CV erst hier
-  window.addEventListener("scroll", onScrollCV);
-
-  document.body.classList.add("cv-mode");
-  window.scrollTo({ top: maxScroll, behavior: "auto" });
-}
-
-function onScrollCV() {
-  const y = Math.min(Math.max(window.scrollY, 0), maxScroll);
-  const z = maxScroll - y;
-  cvContainer.style.transform = `translateZ(${z}px)`;
-  document.querySelectorAll(".cv-panel").forEach((panel) => {
-    const pz = parseFloat(panel.style.getPropertyValue("--z"));
-    const d = Math.abs(z + pz);
-    panel.style.opacity = d > 150 ? 0 : 1 - d / 150;
-  });
-}
-
-export function flyTo(idx) {
-  const target = maxScroll - idx * panelDepth;
-  window.scrollTo({ top: target, behavior: "smooth" });
 }

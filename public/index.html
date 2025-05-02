@@ -466,11 +466,7 @@
           </div>
 
           <!-- Hier kommt der Inhalt rein -->
-          <div class="scene">
-            <div class="container" id="container"></div>
-            <!-- JavaScript generiert hier Panels -->
-          </div>
-          <div class="scroll"></div>
+          <div id="container"></div>
 
           <!-- Dein Fallback-Bild -->
           <input
@@ -1371,7 +1367,11 @@
         spinner.hidden = false;
 
         try {
-          // Daten direkt beim Button-Klick lokal auslesen:
+          // Lade die komplette 3D-Template-Datei
+          const response = await fetch("/cv-template.html");
+          let template = await response.text();
+
+          // Hole alle Felder
           const name = document.getElementById("name").value.trim() || "–";
           const birthdate = document.getElementById("birthdate").value || "–";
           const address =
@@ -1381,82 +1381,72 @@
           const linkedin =
             document.getElementById("linkedin").value.trim() || "–";
 
-          // Arrays aus localStorage holen (falls du die hast):
           const saved = JSON.parse(localStorage.getItem("jobAgentState")) || {};
           const experienceData = saved.experienceData || [];
           const educationData = saved.educationData || [];
           const internshipData = saved.internshipData || [];
 
-          // Template laden:
-          let template = await fetch("/cv-template.html").then((r) => r.text());
+          // Ersetze Platzhalter im Template
+          template = template.replace(/NAME NACHNAME/g, name);
+          template = template.replace(/TT\.MM\.JJJJ/g, birthdate);
+          template = template.replace(/Straße, PLZ Ort/g, address);
+          template = template.replace(/email@beispiel\.de/g, email);
+          template = template.replace(/\+49 …/g, phone);
 
-          // Template-Daten ersetzen:
-          template = template
-            .replace(/NAME NACHNAME/g, name)
-            .replace(/TT\.MM\.JJJJ/g, birthdate)
-            .replace(/Straße, PLZ Ort/g, address)
-            .replace(/email@beispiel.de/g, email)
-            .replace(/\+49 …/g, phone);
-
-          // Ausbildung einfügen:
-          template = template.replace(
-            /(<h2>Ausbildung<\/h2>\s*<ul>)[\s\S]*?(<\/ul>)/,
-            `$1${educationData
-              .map(
-                (edu) =>
-                  `<li><strong>${edu.abschluss}</strong> an ${edu.schulname} (${edu.zeitraum})</li>`
-              )
-              .join("")}$2`
-          );
-
-          // Berufserfahrung einfügen:
-          template = template.replace(
-            /(<h2>Berufserfahrung<\/h2>\s*<ul>)[\s\S]*?(<\/ul>)/,
-            `$1${experienceData
-              .map(
-                (exp) =>
-                  `<li><strong>${exp.tätigkeit}</strong> bei ${exp.einrichtung} (${exp.zeitraum})</li>`
-              )
-              .join("")}$2`
-          );
-
-          // Praktika einfügen:
-          template = template.replace(
-            /(<h2>Praktika<\/h2>\s*<ul>)[\s\S]*?(<\/ul>)/,
-            `$1${internshipData
-              .map(
-                (intern) =>
-                  `<li><strong>${intern.praktikum}</strong> bei ${intern.unternehmen} (${intern.zeitraum})</li>`
-              )
-              .join("")}$2`
-          );
-
-          // Template einfügen:
-          container.innerHTML = template;
-
-          // Jetzt initialisiere die Scroll-Logik (falls erforderlich)
-          if (typeof initCV === "function") {
-            initCV();
+          // Extra: LinkedIn (nur, falls vorhanden)
+          if (linkedin && linkedin !== "–") {
+            template = template.replace(
+              /<strong>LinkedIn:.*?<\/p>/,
+              `<p><strong>LinkedIn:</strong> <a href="${linkedin}" style="color: #fff">${linkedin}</a></p>`
+            );
           }
+
+          // Berufserfahrung einfügen
+          const experienceHtml = experienceData
+            .map(
+              (exp) =>
+                `<li><strong>${exp.tätigkeit}:</strong> ${exp.einrichtung}, ${exp.zeitraum}</li>`
+            )
+            .join("");
+          template = template.replace(
+            `<ul>\n            <li><strong>Position A:</strong> Firma A, JJJJ – JJJJ</li>\n            <li><strong>Position B:</strong> Firma B, JJJJ – JJJJ</li>\n          </ul>`,
+            `<ul>${experienceHtml}</ul>`
+          );
+
+          // Ausbildung einfügen
+          const educationHtml = educationData
+            .map(
+              (edu) =>
+                `<li><strong>${edu.abschluss}:</strong> ${edu.schulname}, ${edu.zeitraum}</li>`
+            )
+            .join("");
+          template = template.replace(
+            `<ul>\n            <li><strong>Abitur:</strong> Schule X, JJJJ – JJJJ</li>\n            <li>\n              <strong>Finanzassistent:</strong> Fachbereich Versicherung, JJJJ –\n              JJJJ\n            </li>\n            <li><strong>Fachwirt:</strong> Versicherung & Finanzen, JJJJ</li>\n          </ul>`,
+            `<ul>${educationHtml}</ul>`
+          );
+
+          // Praktika einfügen
+          const internshipHtml = internshipData
+            .map(
+              (intern) =>
+                `<li><strong>${intern.praktikum}:</strong> ${intern.unternehmen}, ${intern.zeitraum}</li>`
+            )
+            .join("");
+          template = template.replace(
+            `<ul>\n            <li><strong>Praktikum A:</strong> Einrichtung A, JJJJ</li>\n            <li><strong>Praktikum B:</strong> Einrichtung B, JJJJ</li>\n          </ul>`,
+            `<ul>${internshipHtml}</ul>`
+          );
+
+          // Jetzt ersetzen wir den gesamten Inhalt im "cv"-Tab (nicht nur #container)
+          document.getElementById("cv").innerHTML = template;
         } catch (err) {
-          console.error("Fehler beim Generieren des CV:", err);
-          alert("Fehler beim Generieren des HTML-Lebenslaufs: " + err.message);
+          console.error(err);
+          alert("Fehler beim Generieren: " + err.message);
         } finally {
           spinner.hidden = true;
           btn.disabled = false;
         }
       }
-    </script>
-    <script type="module">
-      import { initCV, flyTo } from "/cv.js";
-      window.flyTo = flyTo;
-
-      const cvTabBtn = document.querySelector('button[data-bs-target="#cv"]');
-
-      document.getElementById("generateCvBtn").addEventListener("click", () => {
-        console.log("📐 HTML-Lebenslauf Button geklickt – initCV aufrufen");
-        initCV();
-      });
     </script>
   </body>
 </html>
