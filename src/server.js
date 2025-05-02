@@ -13,6 +13,8 @@ const { chromium } = require("playwright");
 const geolib = require("geolib");
 const bodyParser = require("body-parser");
 
+const Handlebars = require("handlebars");
+
 const app = express();
 const PORT = 3000;
 
@@ -719,6 +721,57 @@ Praktika: ${JSON.stringify(internships)}
     res
       .status(500)
       .json({ error: "Interner Serverfehler beim Erstellen des Lebenslaufs." });
+  }
+});
+
+// POST-Route: CV per Template rendern
+app.post("/api/generate-cv", express.json(), async (req, res) => {
+  const {
+    name,
+    birthdate,
+    address,
+    phone,
+    email,
+    linkedin,
+    experience = [],
+    education = [],
+    internships = [],
+  } = req.body;
+
+  // Pflichtfelder prüfen
+  if (!name || !birthdate || !address) {
+    return res
+      .status(400)
+      .json({ error: "Bitte Name, Geburtsdatum und Adresse angeben." });
+  }
+
+  try {
+    // Template laden
+    const source = fs.readFileSync(
+      path.join(__dirname, "../public/cv-template.html"),
+      "utf8"
+    );
+    const template = Handlebars.compile(source);
+
+    // Daten injizieren
+    const htmlCv = template({
+      name,
+      birthdate,
+      address,
+      phone,
+      email,
+      linkedin,
+      experience,
+      education,
+      internships,
+    });
+
+    res.json({ htmlCv });
+  } catch (err) {
+    console.error("Fehler beim Generieren des Lebenslaufs:", err);
+    res
+      .status(500)
+      .json({ error: "Serverfehler beim Erstellen des Lebenslaufs." });
   }
 });
 

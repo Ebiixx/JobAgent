@@ -8,10 +8,15 @@
 const panelDepth = 300;
 const panelCount = 5;
 const maxScroll = (panelCount - 1) * panelDepth;
-const cvContainer = document.getElementById("cv-container");
+let cvContainer;
 
-// Erzeuge Panels dynamisch
 export function buildCV() {
+  cvContainer = document.getElementById("container");
+  if (!cvContainer) {
+    console.error("Container-Element nicht gefunden!");
+    return;
+  }
+
   cvContainer.innerHTML = "";
   const sections = [
     { title: "Persönliche Daten", content: renderPersonal() },
@@ -20,10 +25,11 @@ export function buildCV() {
     { title: "Praktika", content: renderInternship() },
     { title: "Sprachen", content: renderLanguages() },
   ];
+
   sections.forEach((sec, i) => {
     const s = document.createElement("section");
-    s.className = "cv-panel";
-    s.style.setProperty("--z", `-${i * panelDepth}px`);
+    s.className = "panel";
+    s.style.transform = `translate(-50%, -50%) translateZ(-${i * 300}px)`;
     s.innerHTML = `<h2>${sec.title}</h2>${sec.content}`;
     cvContainer.appendChild(s);
   });
@@ -94,13 +100,17 @@ function renderLanguages() {
 
 // Scroll- und Navigation-Handler
 export function initCV() {
-  console.log("📦 initCV() gestartet");
+  cvContainer = document.getElementById("container");
+  if (!cvContainer) {
+    console.error("Container nicht gefunden beim Initialisieren des CV!");
+    return;
+  }
+
+  buildCV(); // generiere CV erst hier
   window.addEventListener("scroll", onScrollCV);
-  window.addEventListener("load", () => {
-    document.body.classList.add("cv-mode");
-    buildCV();
-    window.scrollTo({ top: maxScroll, behavior: "auto" });
-  });
+
+  document.body.classList.add("cv-mode");
+  window.scrollTo({ top: maxScroll, behavior: "auto" });
 }
 
 function onScrollCV() {

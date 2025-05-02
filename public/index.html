@@ -436,61 +436,85 @@
           role="tabpanel"
           aria-labelledby="cv-tab"
         >
-          <div class="mb-3">
+          <div class="mb-3 position-relative">
             <button
               id="generateCvBtn"
-              class="btn btn-success"
+              class="btn btn-success mb-3"
               onclick="generateHtmlCv()"
             >
               🖥️ HTML-Lebenslauf erstellen
             </button>
+
+            <!-- Spinner: hell und sichtbar, mit z-index -->
+            <span
+              id="cvLoading"
+              class="spinner-border text-light ms-2"
+              role="status"
+              style="
+                width: 2.5rem;
+                height: 2.5rem;
+                position: absolute;
+                top: 50%;
+                left: 100%;
+                transform: translateY(-50%);
+                z-index: 30;
+              "
+              hidden
+            >
+              <span class="visually-hidden">Loading…</span>
+            </span>
           </div>
-          <div class="cv-scroll"></div>
+
+          <!-- Hier kommt der Inhalt rein -->
+          <div class="scene">
+            <div class="container" id="container"></div>
+            <!-- JavaScript generiert hier Panels -->
+          </div>
+          <div class="scroll"></div>
+
+          <!-- Dein Fallback-Bild -->
           <input
             type="file"
             accept="image/*"
             id="cv-photo-input"
-            class="cv-profile-input"
+            class="cv-profile-input mb-3"
           />
+          <img
+            src="Bild.png"
+            alt="Profilfoto"
+            class="profile-img mb-3"
+            onerror="this.onerror=null; this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0nMTUwJyBoZWlnaHQ9JzE1MCcgeG1sbnM9J2h0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnJz48cmVjdCB3aWR0aD0nMTUwJyBoZWlnaHQ9JzE1MCcgZmlsbD0nI2RkZCcgcng9JzE1Jy8+PHRleHQgeD0nNzUnIHk9Jzc1JyBmb250LXNpemU9JzE4JyB0ZXh0LWFuY2hvcj0nbWlkZGxlJyBmaWxsPScjNjY2Jz5uL2E8L3RleHQ+PC9zdmc+';"
+          />
+
+          <!-- Scroll-Navigationsbuttons -->
           <div class="cv-top-nav mb-3">
             <button
-              type="button"
               class="btn btn-outline-secondary btn-sm me-1"
               onclick="flyTo(0)"
             >
               Profil
             </button>
             <button
-              type="button"
               class="btn btn-outline-secondary btn-sm me-1"
               onclick="flyTo(1)"
             >
               Erfahrung
             </button>
             <button
-              type="button"
               class="btn btn-outline-secondary btn-sm me-1"
               onclick="flyTo(2)"
             >
               Ausbildung
             </button>
             <button
-              type="button"
               class="btn btn-outline-secondary btn-sm me-1"
               onclick="flyTo(3)"
             >
               Skills
             </button>
-            <button
-              type="button"
-              class="btn btn-outline-secondary btn-sm"
-              onclick="flyTo(4)"
-            >
+            <button class="btn btn-outline-secondary btn-sm" onclick="flyTo(4)">
               Kontakt
             </button>
-          </div>
-          <div class="cv-scene">
-            <div class="cv-container" id="cv-container"></div>
           </div>
         </div>
       </div>
@@ -1339,48 +1363,87 @@
         .addEventListener("click", searchJobs);
 
       async function generateHtmlCv() {
-        // 1) Daten aus Tab 1 zusammenpacken
-        const payload = {
-          name: document.getElementById("name").value.trim(),
-          birthdate: document.getElementById("birthdate").value,
-          address: document.getElementById("address").value.trim(),
-          phone: document.getElementById("phone").value.trim(),
-          email: document.getElementById("email").value.trim(),
-          linkedin: document.getElementById("linkedin").value.trim(),
-          experience: experienceData,
-          education: educationData,
-          internships: internshipData,
-        };
-
-        // 2) Loading-Feedback
         const btn = document.getElementById("generateCvBtn");
+        const spinner = document.getElementById("cvLoading");
+        const container = document.getElementById("container");
+
         btn.disabled = true;
-        btn.textContent = "⏳ Generiere Lebenslauf…";
+        spinner.hidden = false;
 
         try {
-          // 3) Anfrage an Dein Backend (/api/generate-cv)
-          const res = await fetch("/api/generate-cv", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
-          });
+          // Daten direkt beim Button-Klick lokal auslesen:
+          const name = document.getElementById("name").value.trim() || "–";
+          const birthdate = document.getElementById("birthdate").value || "–";
+          const address =
+            document.getElementById("address").value.trim() || "–";
+          const phone = document.getElementById("phone").value.trim() || "–";
+          const email = document.getElementById("email").value.trim() || "–";
+          const linkedin =
+            document.getElementById("linkedin").value.trim() || "–";
 
-          if (!res.ok) throw new Error(await res.text());
+          // Arrays aus localStorage holen (falls du die hast):
+          const saved = JSON.parse(localStorage.getItem("jobAgentState")) || {};
+          const experienceData = saved.experienceData || [];
+          const educationData = saved.educationData || [];
+          const internshipData = saved.internshipData || [];
 
-          const { htmlCv } = await res.json();
+          // Template laden:
+          let template = await fetch("/cv-template.html").then((r) => r.text());
 
-          // 4) In den Canvas injizieren
-          const container = document.getElementById("cv-container");
-          container.innerHTML = htmlCv;
+          // Template-Daten ersetzen:
+          template = template
+            .replace(/NAME NACHNAME/g, name)
+            .replace(/TT\.MM\.JJJJ/g, birthdate)
+            .replace(/Straße, PLZ Ort/g, address)
+            .replace(/email@beispiel.de/g, email)
+            .replace(/\+49 …/g, phone);
 
-          // (Optional) falls Du noch drei.js o.ä. rendern willst:
-          // initCV();
+          // Ausbildung einfügen:
+          template = template.replace(
+            /(<h2>Ausbildung<\/h2>\s*<ul>)[\s\S]*?(<\/ul>)/,
+            `$1${educationData
+              .map(
+                (edu) =>
+                  `<li><strong>${edu.abschluss}</strong> an ${edu.schulname} (${edu.zeitraum})</li>`
+              )
+              .join("")}$2`
+          );
+
+          // Berufserfahrung einfügen:
+          template = template.replace(
+            /(<h2>Berufserfahrung<\/h2>\s*<ul>)[\s\S]*?(<\/ul>)/,
+            `$1${experienceData
+              .map(
+                (exp) =>
+                  `<li><strong>${exp.tätigkeit}</strong> bei ${exp.einrichtung} (${exp.zeitraum})</li>`
+              )
+              .join("")}$2`
+          );
+
+          // Praktika einfügen:
+          template = template.replace(
+            /(<h2>Praktika<\/h2>\s*<ul>)[\s\S]*?(<\/ul>)/,
+            `$1${internshipData
+              .map(
+                (intern) =>
+                  `<li><strong>${intern.praktikum}</strong> bei ${intern.unternehmen} (${intern.zeitraum})</li>`
+              )
+              .join("")}$2`
+          );
+
+          // Template einfügen:
+          container.innerHTML = template;
+
+          // Jetzt initialisiere die Scroll-Logik (falls erforderlich)
+          if (typeof initCV === "function") {
+            initCV();
+          }
         } catch (err) {
-          console.error(err);
-          alert("Fehler beim Generieren des HTML-Lebenslaufs.");
+          console.error("Fehler beim Generieren des CV:", err);
+          alert("Fehler beim Generieren des HTML-Lebenslaufs: " + err.message);
         } finally {
+          spinner.hidden = true;
           btn.disabled = false;
-          btn.textContent = "🖥️ HTML-Lebenslauf erstellen";
         }
       }
     </script>
@@ -1388,11 +1451,10 @@
       import { initCV, flyTo } from "/cv.js";
       window.flyTo = flyTo;
 
-      // Statt getElementById("cv-tab") nimm das Button-Element selbst:
       const cvTabBtn = document.querySelector('button[data-bs-target="#cv"]');
 
-      cvTabBtn.addEventListener("shown.bs.tab", () => {
-        console.log("📐 CV-Tab sichtbar – initCV aufrufen");
+      document.getElementById("generateCvBtn").addEventListener("click", () => {
+        console.log("📐 HTML-Lebenslauf Button geklickt – initCV aufrufen");
         initCV();
       });
     </script>
