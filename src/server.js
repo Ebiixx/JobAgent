@@ -669,6 +669,59 @@ ${experienceData
   }
 });
 
+app.post("/api/generate-cv", async (req, res) => {
+  const {
+    name,
+    birthdate,
+    address,
+    phone,
+    email,
+    linkedin,
+    experience,
+    education,
+    internships,
+  } = req.body;
+
+  if (!name || !birthdate || !address) {
+    return res
+      .status(400)
+      .json({ error: "Bitte Name, Geburtsdatum und Adresse angeben." });
+  }
+
+  const prompt = `
+Erstelle auf Basis dieser Daten einen modernen HTML-Lebenslauf.
+Liefere ausschließlich den reinen <html>…</html>-Code zurück.
+
+Name: ${name}
+Geburtsdatum: ${birthdate}
+Adresse: ${address}
+Telefon: ${phone || "-"}
+E-Mail: ${email || "-"}
+${linkedin ? `LinkedIn: ${linkedin}` : ""}
+Erfahrung: ${JSON.stringify(experience)}
+Ausbildung: ${JSON.stringify(education)}
+Praktika: ${JSON.stringify(internships)}
+`;
+
+  try {
+    const aiResponse = await askOpenAI([
+      { role: "system", content: "Du bist ein CV-Generator." },
+      { role: "user", content: prompt },
+    ]);
+
+    let htmlCv = aiResponse.choices[0].message.content.trim();
+    // Entferne evtl. Markdown-Fences
+    htmlCv = htmlCv.replace(/^```html\s*/, "").replace(/```$/, "");
+
+    res.json({ htmlCv });
+  } catch (err) {
+    console.error("Fehler beim Generieren des Lebenslaufs:", err);
+    res
+      .status(500)
+      .json({ error: "Interner Serverfehler beim Erstellen des Lebenslaufs." });
+  }
+});
+
 // Server starten
 app.listen(PORT, () => {
   console.log(`Server läuft auf http://localhost:${PORT}`);
