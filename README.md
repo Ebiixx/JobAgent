@@ -116,14 +116,6 @@ Der Server läuft standardmäßig unter [http://localhost:3000](http://localhost
 
 ---
 
-## 🧪 Tests
-
-- Unit-Tests ausführen:
-
-```bash
-npm test
-```
-
 - Testabdeckung anzeigen: _(Hier kannst du später noch ergänzen, falls du ein Coverage-Tool wie Jest Coverage verwendest.)_
 
 ---
