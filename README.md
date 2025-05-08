@@ -26,7 +26,7 @@ JobAgent ist eine Webanwendung, die den Bewerbungsprozess vereinfacht. Mit Funkt
 
 ### 4. **Jobsuche**
 
-- Suche nach Stellenangeboten über verschiedene Quellen (z. B. StepStone).
+- Suche nach Stellenangeboten über verschiedene Quellen anhand der bereitgestellten Informationen und Erfahrungen im Lebenslauf.
 - Filterung nach Postleitzahl und Umkreis.
 
 ### 5. **HTML-Lebenslauf**
