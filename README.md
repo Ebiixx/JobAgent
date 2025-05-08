@@ -114,12 +114,6 @@ Der Server läuft standardmäßig unter [http://localhost:3000](http://localhost
 - **Lebenslauf exportieren**: Lade deinen Lebenslauf als PDF herunter oder bearbeite ihn direkt im Browser.
 - **Jobsuche starten**: Suche nach passenden Stellenangeboten und filtere die Ergebnisse nach deinen Präferenzen.
 
----
-
-- Testabdeckung anzeigen: _(Hier kannst du später noch ergänzen, falls du ein Coverage-Tool wie Jest Coverage verwendest.)_
-
----
-
 ## 📜 Lizenz
 
 Dieses Projekt steht unter der MIT-Lizenz.
