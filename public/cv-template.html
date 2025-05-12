@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Lebenslauf – NAME NACHNAME</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        min-height: 100%;
+        overflow-y: auto;
+        background: #121212;
+        color: #e0e0e0;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+      /* Unsichtbarer Scrollbereich: 5 Panels -> (5-1)*300px + 100vh */
+      .scroll {
+        height: calc((4 - 1) * 300px + 100vh);
+      }
+      /* Top Navigation: Profilbild in der Mitte mit Kategorien links und rechts */
+      .top-nav {
+        position: fixed;
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 20;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 40px;
+        pointer-events: auto;
+      }
+      .nav-group {
+        display: flex;
+        gap: 20px;
+      }
+      .nav-group a {
+        color: #fff;
+        text-decoration: none;
+        font-weight: bold;
+        font-size: 1rem;
+        cursor: pointer;
+        white-space: nowrap;
+      }
+      .nav-group a:hover {
+        color: #e0e0e0;
+      }
+      .profile-img {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid #fff;
+      }
+      /* Fixierte Szene mit 3D-Perspektive */
+      .scene {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        perspective: 1200px;
+        perspective-origin: 50% 50%;
+        overflow: hidden;
+        pointer-events: auto;
+        touch-action: pan-y;
+      }
+      /* Container, der sich in der Z-Achse bewegt */
+      #container {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        transform-style: preserve-3d;
+        will-change: transform;
+      }
+      /* Panels – größer, zentriert und markier-/kopierbar */
+      .panel {
+        position: absolute;
+        width: 90%;
+        height: 80%;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(20, 20, 20, 0.9);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        padding: 20px;
+        box-sizing: border-box;
+        overflow-y: auto;
+        transition: opacity 0.2s ease-out;
+        user-select: text;
+      }
+      .panel h2 {
+        text-align: center;
+        font-size: 2rem;
+        margin-bottom: 1rem;
+        letter-spacing: 1px;
+        color: #fff;
+      }
+      .panel ul,
+      .panel p {
+        font-size: 1rem;
+        line-height: 1.5;
+        margin: 0.5em 0;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Unsichtbarer Scrollbereich -->
+    <div class="scroll"></div>
+
+    <!-- Top Navigation -->
+    <div class="top-nav">
+      <div class="nav-group">
+        <a onclick="flyToSection(0)">Persönliche Daten</a>
+        <a onclick="flyToSection(1)">Ausbildung</a>
+      </div>
+      <img
+        src="{{photo}}"
+        alt="Profilfoto"
+        class="profile-img"
+        onerror="this.onerror=null; this.src='fallback.png';"
+      />
+
+      <div class="nav-group">
+        <a onclick="flyToSection(2)">Berufserfahrung</a>
+        <a onclick="flyToSection(3)">Praktika</a>
+      </div>
+    </div>
+
+    <!-- Fixierte Szene -->
+    <div class="scene">
+      <!-- Container, der sich in Z-Richtung bewegt -->
+      <div class="container" id="container">
+        <!-- Panel 1: Persönliche Daten -->
+        <section
+          class="panel"
+          data-z="0"
+          style="transform: translate(-50%, -50%) translateZ(0px)"
+        >
+          <h2>Persönliche Daten</h2>
+          <p><strong>Name:</strong> {{name}}</p>
+          <p><strong>Geburtsdatum:</strong> {{birthdate}}</p>
+          <p><strong>Adresse:</strong> {{address}}</p>
+          <p>
+            <strong>E-Mail:</strong>
+            <a href="mailto:{{email}}" style="color: #fff">{{email}}</a>
+          </p>
+          <p><strong>Telefon:</strong> {{phone}}</p>
+          {{#if linkedin}}
+          <p>
+            <strong>LinkedIn:</strong>
+            <a href="{{linkedin}}" style="color: #fff">{{linkedin}}</a>
+          </p>
+          {{/if}} {{#if languages.length}}
+          <h3>Sprachen</h3>
+          <ul>
+            {{#each languages}}
+            <li><strong>{{sprache}}:</strong> {{kenntnisse}}</li>
+            {{/each}}
+          </ul>
+          {{/if}}
+        </section>
+
+        <!-- Panel 2: Ausbildung -->
+        <section
+          class="panel"
+          data-z="-300"
+          style="transform: translate(-50%, -50%) translateZ(-300px)"
+        >
+          <h2>Ausbildung</h2>
+          <ul>
+            {{#each education}}
+            <li><strong>{{abschluss}}:</strong> {{schulname}}, {{zeitraum}}</li>
+            {{/each}}
+          </ul>
+        </section>
+
+        <!-- Panel 3: Berufserfahrung -->
+        <section
+          class="panel"
+          data-z="-600"
+          style="transform: translate(-50%, -50%) translateZ(-600px)"
+        >
+          <h2>Berufserfahrung</h2>
+          <ul>
+            {{#each experience}}
+            <li>
+              <strong>{{tätigkeit}}:</strong> {{einrichtung}}, {{zeitraum}}
+            </li>
+            {{/each}}
+          </ul>
+        </section>
+
+        <!-- Panel 4: Praktika -->
+        <section
+          class="panel"
+          data-z="-900"
+          style="transform: translate(-50%, -50%) translateZ(-900px)"
+        >
+          <h2>Praktika</h2>
+          <ul>
+            {{#each internships}}
+            <li>
+              <strong>{{praktikum}}:</strong> {{unternehmen}}, {{zeitraum}}
+            </li>
+            {{/each}}
+          </ul>
+        </section>
+      </div>
+    </div>
+
+    <script>
+      // Panel-Abstand und Scroll-Berechnung
+      const panelDistance = 300;
+      const panelCount = 4;
+      const maxScroll = (panelCount - 1) * panelDistance;
+      const fadeRange = 150;
+      const panels = document.querySelectorAll(".panel");
+      const container = document.getElementById("container");
+
+      window.addEventListener("scroll", () => {
+        let scrollPosition = window.scrollY;
+        scrollPosition = Math.min(Math.max(scrollPosition, 0), maxScroll);
+        const inverted = maxScroll - scrollPosition;
+
+        container.style.transform = `translateZ(${inverted}px)`;
+
+        panels.forEach((panel) => {
+          const baseZ = parseFloat(panel.getAttribute("data-z"));
+          const effectiveZ = inverted + baseZ;
+          const absZ = Math.abs(effectiveZ);
+          let opacity = absZ > fadeRange ? 0 : 1 - absZ / fadeRange;
+          panel.style.opacity = opacity;
+        });
+      });
+
+      function flyToSection(index) {
+        const target = maxScroll - index * panelDistance;
+        window.scrollTo({ top: target, behavior: "smooth" });
+      }
+
+      window.addEventListener("load", () => {
+        // Beim Laden direkt zum ersten Panel scrollen
+        window.scrollTo({ top: maxScroll, behavior: "auto" });
+      });
+    </script>
+  </body>
+</html>

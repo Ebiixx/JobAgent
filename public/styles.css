@@ -1,0 +1,231 @@
+/* Container für Berufserfahrung, Schulbildung und Praktika */
+#experienceContainer,
+#educationContainer,
+#internshipContainer {
+  margin-bottom: 30px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+}
+
+/* Flexbox für die Überschrift und den Button */
+.d-flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.d-flex .form-label {
+  font-weight: bold;
+  margin-bottom: 0;
+  font-size: 1rem;
+}
+
+/* Styling für die Buttons */
+.d-flex button {
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  color: #007bff;
+  font-size: 0.85rem;
+  padding: 6px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.d-flex button:hover {
+  background-color: #e6e6e6;
+  color: #0056b3;
+}
+
+/* Flexbox für die Einträge in der Liste */
+.list-group-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Für die Input-Felder und deren Abstände */
+.list-group-item .row {
+  width: 100%;
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: space-between;
+}
+
+/* Sicherstellen, dass die Felder nebeneinander bleiben */
+.list-group-item .col-md-3 {
+  flex: 1 1 30%; /* Aufteilen der Spalten gleichmäßig */
+}
+
+.list-group-item .col-md-4 {
+  flex: 1 1 30%; /* Zeigt die mittlere Spalte größer an */
+}
+
+/* Abstand zwischen den Einträgen */
+.list-group-item:not(:last-child) {
+  margin-bottom: 10px;
+}
+
+/* Einheitliche Button-Größe für alle Löschen-Buttons */
+button.btn-sm {
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  height: 35px; /* Standardhöhe */
+  width: auto;
+}
+
+/* Einheitlicher Stil für Löschen-Buttons */
+button.btn-sm.btn-danger {
+  background-color: #ff4d4d;
+  color: white;
+  border: none;
+  border-radius: 5px;
+}
+
+/* Hover-Effekt für Löschen-Buttons */
+button.btn-sm.btn-danger:hover {
+  background-color: #ff1a1a;
+  color: white;
+}
+
+/* Position der Überschrift über den Eingabefeldern */
+.form-label {
+  margin-bottom: 5px; /* Abstand von den Eingabefeldern */
+}
+
+/* Padding und Größe für Input-Felder */
+input[type="text"] {
+  width: 100%; /* Füllt die Spalte aus */
+  padding: 8px;
+}
+
+/* Einheitliche Button-Größe für alle Löschen-Buttons */
+button.btn-sm {
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  height: 36px; /* Fixierte Höhe für alle Buttons */
+  width: auto;
+  line-height: 1.5;
+}
+
+/* Einheitlicher Stil für Löschen-Buttons */
+button.btn-sm.btn-danger {
+  background-color: #ff4d4d;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  width: auto; /* Die Breite passt sich dem Inhalt an */
+  display: flex;
+  align-items: center; /* Icon und Text nebeneinander anordnen */
+  gap: 5px; /* Abstand zwischen Icon und Text */
+  margin-left: 50px; /*Abstand zum Textfeld links */
+}
+
+/* Hover-Effekt für Löschen-Buttons */
+button.btn-sm.btn-danger:hover {
+  background-color: #ff1a1a;
+  color: white;
+}
+
+#loading {
+  font-weight: bold;
+  transition: opacity 0.3s;
+}
+
+#loadingStatus {
+  font-weight: 500;
+  font-size: 1.05rem;
+}
+
+#responseOutput {
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-y: auto;
+  max-height: none;
+}
+
+#letterContainer {
+  max-height: none;
+  overflow-y: auto;
+  padding-bottom: 2rem;
+}
+
+#tab4-filters {
+  border: 1px solid #ddd;
+}
+#tab4-filters .form-check {
+  margin-right: 1rem;
+}
+#tab4-filters input[type="number"] {
+  max-width: 150px;
+}
+
+#jobResults h4 {
+  margin-top: 2rem;
+  color: #2c3e50;
+  border-bottom: 2px solid #e2e6ea;
+  padding-bottom: 0.3rem;
+}
+
+.card-title {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.card-text {
+  flex-grow: 1;
+  margin-bottom: 0.5rem;
+}
+
+.btn-outline-primary {
+  font-size: 0.9rem;
+  padding: 0.4rem 0.8rem;
+}
+
+#cvLoading {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+#cvLoading.spinner-border {
+  width: 3rem;
+  height: 3rem;
+}
+
+#container {
+  padding: 20px;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  max-width: 800px;
+  margin: auto;
+}
+
+.cv-section {
+  margin-bottom: 30px;
+}
+
+.cv-section h2 {
+  border-bottom: 2px solid #ccc;
+  padding-bottom: 5px;
+  margin-bottom: 15px;
+}
+
+.cv-section ul {
+  padding-left: 20px;
+}
+
+.cv-section ul li {
+  margin-bottom: 10px;
+}
+
+.profile-img {
+  width: 150px;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 2px solid #ccc;
+  display: block;
+}

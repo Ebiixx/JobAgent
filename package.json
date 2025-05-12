@@ -1,0 +1,24 @@
+{
+  "name": "jobagent",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "axios": "^1.9.0",
+    "cheerio": "^1.0.0",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "geolib": "^3.3.4",
+    "handlebars": "^4.7.8",
+    "multer": "^1.4.5-lts.2",
+    "pdf-parse": "^1.1.1",
+    "playwright": "^1.52.0",
+    "quill": "^2.0.3"
+  }
+}

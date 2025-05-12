@@ -1,0 +1,39 @@
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Logs
+logs/
+*.log
+*.log.*
+
+# Build output
+dist/
+build/
+
+# Environment variables
+.env
+
+# IDE-specific files
+.vscode/
+.idea/
+*.swp
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.old
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Uploads
+public/uploads/
+uploads/
+
+# Playwright
+.playwright/

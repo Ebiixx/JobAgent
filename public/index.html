@@ -1,0 +1,1484 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>JobAgent</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <link
+      href="https://cdn.quilljs.com/2.0.0-dev.4/quill.snow.css"
+      rel="stylesheet"
+    />
+  </head>
+
+  <body class="bg-light">
+    <div class="container py-5">
+      <h1 class="mb-4 text-center">📄 JobAgent - Bewerbungshelfer</h1>
+
+      <!-- Tabs -->
+      <ul class="nav nav-tabs mb-3" id="formTabs" role="tablist">
+        <li class="nav-item">
+          <button
+            class="nav-link active"
+            id="personal-tab"
+            data-bs-toggle="tab"
+            data-bs-target="#personal"
+            type="button"
+            role="tab"
+          >
+            1. Persönliche Daten
+          </button>
+        </li>
+        <li class="nav-item">
+          <button
+            class="nav-link"
+            id="job-tab"
+            data-bs-toggle="tab"
+            data-bs-target="#job"
+            type="button"
+            role="tab"
+          >
+            2. Job & Arbeitgeber
+          </button>
+        </li>
+        <li class="nav-item">
+          <button
+            class="nav-link"
+            id="result-tab"
+            data-bs-toggle="tab"
+            data-bs-target="#result"
+            type="button"
+            role="tab"
+          >
+            3. KI Agent starten
+          </button>
+        </li>
+        <li class="nav-item">
+          <button
+            class="nav-link"
+            id="search-tab"
+            data-bs-toggle="tab"
+            data-bs-target="#search"
+            type="button"
+            role="tab"
+          >
+            4. Jobsuche
+          </button>
+        </li>
+        <!-- ganz unten in Deinem <ul class="nav nav-tabs"> -->
+        <li class="nav-item">
+          <button
+            class="nav-link"
+            id="cv-tab"
+            data-bs-toggle="tab"
+            data-bs-target="#cv"
+            type="button"
+            role="tab"
+          >
+            5. HTML Lebenslauf
+          </button>
+        </li>
+      </ul>
+
+      <!-- Tab Inhalte -->
+      <div class="tab-content" id="formTabsContent">
+        <!-- Persönliche Daten -->
+        <div class="tab-pane fade show active" id="personal" role="tabpanel">
+          <form id="formPersonal">
+            <!-- Standardfelder -->
+            <div class="mb-3">
+              <label class="form-label">Name</label>
+              <input
+                type="text"
+                class="form-control"
+                id="name"
+                placeholder="Max Mustermann"
+              />
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Geburtsdatum</label>
+              <input type="date" class="form-control" id="birthdate" />
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Adresse</label>
+              <input type="text" class="form-control" id="address" />
+            </div>
+
+            <!-- NEU: Telefon -->
+            <div class="mb-3">
+              <label class="form-label">Telefonnummer</label>
+              <input
+                type="text"
+                class="form-control"
+                id="phone"
+                placeholder="+49 170 1234567"
+              />
+            </div>
+
+            <!-- NEU: E-Mail -->
+            <div class="mb-3">
+              <label class="form-label">E-Mail-Adresse</label>
+              <input
+                type="email"
+                class="form-control"
+                id="email"
+                placeholder="max@example.com"
+              />
+            </div>
+
+            <!-- NEU: LinkedIn -->
+            <div class="mb-3">
+              <label class="form-label">LinkedIn Profil (optional)</label>
+              <input
+                type="url"
+                class="form-control"
+                id="linkedin"
+                placeholder="https://linkedin.com/in/username"
+              />
+            </div>
+            <!-- Sprachen -->
+            <div class="mb-3">
+              <label class="form-label">Sprachen</label>
+              <div id="languagesContainer" class="list-group mb-3">
+                <div id="languagesList" class="list-group"></div>
+                <button
+                  type="button"
+                  class="btn btn-primary"
+                  onclick="addLanguage()"
+                >
+                  ➕ Neue Sprache
+                </button>
+              </div>
+            </div>
+
+            <!-- Berufserfahrung -->
+            <div class="mb-3">
+              <div id="experienceContainer" class="list-group mb-3">
+                <div class="d-flex justify-content-between align-items-center">
+                  <label class="form-label">Berufserfahrung</label>
+                  <button
+                    type="button"
+                    class="btn btn-primary"
+                    onclick="addExperience()"
+                  >
+                    ➕ Neue Erfahrung
+                  </button>
+                </div>
+                <div id="experienceList" class="list-group mb-3"></div>
+              </div>
+            </div>
+
+            <!-- Schulbildung -->
+            <div class="mb-3">
+              <div id="educationContainer" class="list-group mb-3">
+                <div class="d-flex justify-content-between align-items-center">
+                  <label class="form-label">Schulbildung / Ausbildung</label>
+                  <button
+                    type="button"
+                    class="btn btn-primary"
+                    onclick="addEducation()"
+                  >
+                    ➕ Neue Ausbildung
+                  </button>
+                </div>
+                <div id="educationList" class="list-group mb-3"></div>
+              </div>
+            </div>
+
+            <!-- Praktika -->
+            <div class="mb-3">
+              <div id="internshipContainer" class="list-group mb-3">
+                <div class="d-flex justify-content-between align-items-center">
+                  <label class="form-label">Praktika</label>
+                  <button
+                    type="button"
+                    class="btn btn-primary"
+                    onclick="addInternship()"
+                  >
+                    ➕ Neues Praktikum
+                  </button>
+                </div>
+                <div id="internshipList" class="list-group mb-3"></div>
+              </div>
+            </div>
+
+            <!-- Lebenslauf-Upload -->
+            <div class="mb-3">
+              <label class="form-label">Lebenslauf (PDF)</label>
+              <input
+                type="file"
+                class="form-control"
+                id="cvUpload"
+                accept=".pdf"
+              />
+              <button
+                type="button"
+                class="btn btn-secondary mt-2"
+                onclick="uploadCV(event)"
+              >
+                📤 PDF auslesen
+              </button>
+              <div
+                id="uploadStatus"
+                class="form-text text-muted mt-1"
+                style="display: none"
+              >
+                ⏳ Wird analysiert...
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <!-- Job & Arbeitgeber -->
+        <div class="tab-pane fade" id="job" role="tabpanel">
+          <form id="formJob">
+            <div class="mb-3">
+              <label class="form-label">Stellenbezeichnung</label>
+              <input
+                type="text"
+                class="form-control"
+                id="jobTitle"
+                placeholder="z.B. Softwareentwickler (m/w/d)"
+              />
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Unternehmen</label>
+              <input
+                type="text"
+                class="form-control"
+                id="company"
+                placeholder="z.B. Cloudflight GmbH"
+              />
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Unternehmens-Website</label>
+              <input
+                type="url"
+                class="form-control"
+                id="companyUrl"
+                placeholder="https://..."
+              />
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Stellenbeschreibung</label>
+              <textarea
+                class="form-control"
+                id="jobDescription"
+                rows="3"
+              ></textarea>
+            </div>
+          </form>
+        </div>
+
+        <!-- Ergebnis -->
+
+        <div class="tab-pane fade" id="result" role="tabpanel">
+          <p>Wenn alles ausgefüllt ist, kannst du starten:</p>
+
+          <button class="btn btn-success" onclick="startAgent()">
+            🚀 Bewerbung erstellen lassen
+          </button>
+
+          <div id="loadingStatus" class="align-items-center my-3" hidden>
+            <div class="spinner-border text-primary me-3" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+
+            <span id="loadingText"
+              >⏳ Der KI-Agent generiert dein Bewerbungsschreiben…</span
+            >
+          </div>
+
+          <div
+            id="letterContainer"
+            class="bg-white p-5 rounded shadow-sm mx-auto"
+            style="max-width: 800px"
+          >
+            <h2 class="mb-4 text-center text-primary">
+              📄 Ihr Bewerbungsschreiben
+            </h2>
+
+            <div id="quillWrapper" style="display: none">
+              <div id="toolbar">
+                <span class="ql-formats">
+                  <select class="ql-header">
+                    <option selected></option>
+
+                    <option value="1"></option>
+
+                    <option value="2"></option>
+                  </select>
+                  <button class="ql-bold"></button>
+                  <button class="ql-italic"></button>
+                  <button class="ql-underline"></button>
+                </span>
+
+                <span class="ql-formats">
+                  <button class="ql-link"></button>
+                  <button class="ql-list" value="ordered"></button>
+                  <button class="ql-list" value="bullet"></button>
+                  <button class="ql-clean"></button>
+                </span>
+              </div>
+
+              <div id="responseEditor" style="min-height: 400px"></div>
+            </div>
+
+            <div id="responseOutput" class="mt-3" style="display: none"></div>
+          </div>
+
+          <!-- Neue Aktionen: Neu generieren / Kürzen / Verlängern -->
+          <div class="d-flex justify-content-center my-3 gap-2">
+            <button
+              class="btn btn-outline-warning"
+              onclick="regenerateLetter()"
+            >
+              🔄 Neu generieren
+            </button>
+            <button class="btn btn-outline-secondary" onclick="shortenLetter()">
+              ✂️ Kürzen
+            </button>
+            <button class="btn btn-outline-secondary" onclick="extendLetter()">
+              ➕ Verlängern
+            </button>
+          </div>
+
+          <!-- Button-Zeile: Zwischenablage, PDF, Bearbeiten, Speichern -->
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <button class="btn btn-outline-secondary" onclick="copyLetter()">
+              📋 In Zwischenablage
+            </button>
+            <div>
+              <button
+                id="exportPdfButton"
+                class="btn btn-outline-info me-2"
+                onclick="exportPdf()"
+              >
+                📄 Als PDF speichern
+              </button>
+              <button
+                id="editButton"
+                class="btn btn-outline-primary me-2"
+                onclick="enterEditMode()"
+              >
+                ✏️ Bearbeiten
+              </button>
+              <button
+                id="saveButton"
+                class="btn btn-success"
+                onclick="exitEditMode()"
+                hidden
+              >
+                💾 Speichern
+              </button>
+            </div>
+          </div>
+        </div>
+        <div
+          class="tab-pane fade"
+          id="search"
+          role="tabpanel"
+          aria-labelledby="search-tab"
+        >
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3>Jobsuche</h3>
+            <div
+              id="tab4-filters"
+              class="filters mb-3 p-3 bg-white rounded shadow-sm"
+            >
+              <div class="mb-2"><strong>Quellen:</strong></div>
+              <div class="form-check form-check-inline">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  id="src-stepstone"
+                  value="stepstone"
+                  checked
+                />
+                <label class="form-check-label" for="src-stepstone"
+                  >StepStone</label
+                >
+              </div>
+              <!-- weitere Quellen hier -->
+            </div>
+
+            <div
+              id="tab4-filters"
+              class="filters mb-3 p-3 bg-white rounded shadow-sm"
+            >
+              <div class="mt-3">
+                <label for="postalCode" class="form-label"
+                  ><strong>PLZ:</strong></label
+                >
+                <input
+                  type="text"
+                  id="postalCode"
+                  class="form-control"
+                  placeholder="z. B. 10115"
+                />
+              </div>
+              <div class="mt-3">
+                <label for="radius" class="form-label"
+                  ><strong>Umkreis (km):</strong></label
+                >
+                <input
+                  type="number"
+                  class="form-control"
+                  id="radius"
+                  min="1"
+                  max="100"
+                  placeholder="z. B. 20"
+                />
+              </div>
+            </div>
+            <button id="searchJobsBtn" class="btn btn-primary">
+              🔍 Jobs finden
+            </button>
+          </div>
+          <div id="jobResults" class="list-group"></div>
+        </div>
+        <!-- HTML Lebenslauf -->
+        <div
+          class="tab-pane fade"
+          id="cv"
+          role="tabpanel"
+          aria-labelledby="cv-tab"
+        >
+          <div class="mb-3 position-relative">
+            <button
+              id="generateCvBtn"
+              class="btn btn-success mb-3"
+              onclick="generateHtmlCv()"
+            >
+              🖥️ HTML-Lebenslauf erstellen
+            </button>
+
+            <!-- Spinner: hell und sichtbar, mit z-index -->
+            <span
+              id="cvLoading"
+              class="spinner-border text-light ms-2"
+              role="status"
+              style="
+                width: 2.5rem;
+                height: 2.5rem;
+                position: absolute;
+                top: 50%;
+                left: 100%;
+                transform: translateY(-50%);
+                z-index: 30;
+              "
+              hidden
+            >
+              <span class="visually-hidden">Loading…</span>
+            </span>
+          </div>
+
+          <!-- Dein Fallback-Bild -->
+          <input
+            type="file"
+            accept="image/*"
+            id="cv-photo-input"
+            class="cv-profile-input mb-3"
+          />
+          <img
+            src="uploadedPhotoUrl"
+            alt="Profilfoto"
+            class="profile-img mb-3"
+            onerror="this.onerror=null; this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0nMTUwJyBoZWlnaHQ9JzE1MCcgeG1sbnM9J2h0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnJz48cmVjdCB3aWR0aD0nMTUwJyBoZWlnaHQ9JzE1MCcgZmlsbD0nI2RkZCcgcng9JzE1Jy8+PHRleHQgeD0nNzUnIHk9Jzc1JyBmb250LXNpemU9JzE4JyB0ZXh0LWFuY2hvcj0nbWlkZGxlJyBmaWxsPScjNjY2Jz5uL2E8L3RleHQ+PC9zdmc+';"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- SortableJS -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+
+    <!-- Quill -->
+    <script src="https://cdn.quilljs.com/2.0.0-dev.4/quill.min.js"></script>
+
+    <!-- html2pdf (für PDF-Export) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
+
+    <!-- Custom Script -->
+    <script>
+      // === Lokale Zwischenspeicherung (Autosave) für JobAgent ===
+      const STORAGE_KEY = "jobAgentState";
+      window.userLocation = { lat: null, lon: null };
+
+      document.getElementById("address").addEventListener("change", (e) => {
+        // parse aus Adresse z. B. via Regex oder Geocoder
+        window.userPostalCode = extractPostalFromAddress(e.target.value);
+      });
+
+      function saveState() {
+        const state = {
+          name: document.getElementById("name").value,
+          birthdate: document.getElementById("birthdate").value,
+          address: document.getElementById("address").value,
+          phone: document.getElementById("phone").value,
+          email: document.getElementById("email").value,
+          linkedin: document.getElementById("linkedin").value,
+          jobTitle: document.getElementById("jobTitle").value,
+          company: document.getElementById("company").value,
+          companyUrl: document.getElementById("companyUrl").value,
+          jobDescription: document.getElementById("jobDescription").value,
+          experienceData,
+          educationData,
+          internshipData,
+          lastGeneratedLetterHTML,
+          lastAction, // letzte Aktion: "generate", "shorten" oder "extend"
+          extendCount,
+          shortenCount,
+          languagesData,
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      }
+
+      function loadState() {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (!saved) return;
+        const state = JSON.parse(saved);
+
+        if (state.name) document.getElementById("name").value = state.name;
+        if (state.birthdate)
+          document.getElementById("birthdate").value = state.birthdate;
+        if (state.address)
+          document.getElementById("address").value = state.address;
+        if (state.phone) document.getElementById("phone").value = state.phone;
+        if (state.email) document.getElementById("email").value = state.email;
+        if (state.linkedin)
+          document.getElementById("linkedin").value = state.linkedin;
+        if (state.jobTitle)
+          document.getElementById("jobTitle").value = state.jobTitle;
+        if (state.company)
+          document.getElementById("company").value = state.company;
+        if (state.companyUrl)
+          document.getElementById("companyUrl").value = state.companyUrl;
+        if (state.jobDescription)
+          document.getElementById("jobDescription").value =
+            state.jobDescription;
+
+        experienceData = state.experienceData || [];
+        educationData = state.educationData || [];
+        internshipData = state.internshipData || [];
+        lastGeneratedLetterHTML = state.lastGeneratedLetterHTML || "";
+        extendCount = state.extendCount || 0;
+        shortenCount = state.shortenCount || 0;
+        languagesData = state.languagesData || [];
+
+        renderExperienceList();
+        renderEducationList();
+        renderInternshipList();
+        renderLanguagesList();
+
+        if (lastGeneratedLetterHTML) {
+          document.getElementById("responseOutput").innerHTML =
+            lastGeneratedLetterHTML;
+          document.getElementById("responseOutput").style.display = "block";
+          document.getElementById("editButton").hidden = false;
+        }
+        const resultTab = new bootstrap.Tab(
+          document.querySelector("#result-tab")
+        );
+        resultTab.show();
+      }
+
+      // Wandelt z.B. "MAX MUSTERMANN" → "Max Mustermann"
+      function toTitleCase(str) {
+        return str
+          .toLowerCase()
+          .split(" ")
+          .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+          .join(" ");
+      }
+
+      // Daten-Arrays und Quill-Editor-Variable
+      let experienceData = [];
+      let educationData = [];
+      let internshipData = [];
+      let lastGeneratedLetterHTML = "";
+      let quill;
+      let lastAction = "generate";
+      let extendCount = 0;
+      let shortenCount = 0;
+      let languagesData = [];
+      let uploadedPhotoUrl = "";
+
+      window.addEventListener("DOMContentLoaded", () => {
+        // Quill initialisieren
+        quill = new Quill("#responseEditor", {
+          theme: "snow",
+          placeholder: "Du kannst dein Anschreiben hier bearbeiten.",
+          modules: { toolbar: "#toolbar" },
+        });
+        document.getElementById("quillWrapper").style.display = "none";
+
+        // State wiederherstellen
+        loadState();
+
+        // Auto-Save bei jeder Eingabe in Formularfeldern
+        document
+          .querySelectorAll(
+            "#formPersonal input, #formJob input, #formJob textarea"
+          )
+          .forEach((el) => el.addEventListener("input", saveState));
+
+        // Foto setzen
+        document
+          .getElementById("cv-photo-input")
+          .addEventListener("change", async () => {
+            await uploadPhoto();
+          });
+      });
+
+      // Generierung des Anschreibens
+      async function startAgent() {
+        const data = {
+          name: document.getElementById("name").value,
+          birthdate: document.getElementById("birthdate").value,
+          address: document.getElementById("address").value,
+          phone: document.getElementById("phone").value,
+          email: document.getElementById("email").value,
+          linkedin: document.getElementById("linkedin").value,
+          jobTitle: document.getElementById("jobTitle").value,
+          company: document.getElementById("company").value,
+          companyUrl: document.getElementById("companyUrl").value,
+          jobDescription: document.getElementById("jobDescription").value,
+          experienceData,
+          educationData,
+          internshipData,
+        };
+
+        if (
+          !data.companyUrl ||
+          !data.name ||
+          !data.birthdate ||
+          !data.address ||
+          !data.jobTitle ||
+          !data.company ||
+          !data.jobDescription
+        ) {
+          alert("Bitte fülle alle Pflichtfelder aus.");
+          return;
+        }
+
+        const loadingStatus = document.getElementById("loadingStatus");
+        const loadingText = document.getElementById("loadingText");
+        loadingStatus.hidden = false;
+        loadingText.textContent =
+          "⏳ Der KI-Agent generiert dein Bewerbungsschreiben…";
+
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 60000);
+
+          const response = await fetch("/api/generate-cover-letter", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+            signal: controller.signal,
+          });
+
+          clearTimeout(timeoutId);
+          const result = await response.json();
+
+          if (response.ok) {
+            const formatted = formatLetter(result.coverLetter);
+            quill.clipboard.dangerouslyPasteHTML(formatted);
+            lastGeneratedLetterHTML = formatted;
+            document.getElementById("responseOutput").innerHTML = formatted;
+            document.getElementById("responseOutput").style.display = "block";
+            document.getElementById("editButton").hidden = false;
+            document.getElementById("saveButton").hidden = true;
+            loadingText.textContent =
+              "✅ Bewerbungsschreiben erfolgreich erstellt!";
+            lastAction = "generate";
+            saveState();
+          } else {
+            quill.root.innerHTML = "";
+            loadingText.textContent =
+              "❌ Fehler beim Generieren des Schreibens.";
+          }
+        } catch (error) {
+          quill.root.innerHTML = "";
+          loadingText.textContent = "❌ Fehler beim Senden der Anfrage.";
+          console.error(error);
+        } finally {
+          setTimeout(() => {
+            loadingStatus.hidden = true;
+          }, 2000);
+        }
+      }
+
+      // Neu generieren: berücksichtigt lastAction
+      async function regenerateLetter() {
+        const loadingStatus = document.getElementById("loadingStatus");
+        const loadingText = document.getElementById("loadingText");
+        loadingStatus.hidden = false;
+        loadingText.textContent = "🔄 Neu generiere dein Anschreiben…";
+
+        // 1) Wortzählung des aktuellen Anschreibens
+        const plain = lastGeneratedLetterHTML
+          .replace(/<\/?[^>]+>/g, " ")
+          .trim()
+          .split(/\s+/)
+          .filter((w) => w.length > 0);
+        const wordCount = plain.length;
+
+        // 2) Alle Form-Daten plus overrideWordCount zusammentragen
+        const payload = {
+          name: document.getElementById("name").value,
+          birthdate: document.getElementById("birthdate").value,
+          address: document.getElementById("address").value,
+          phone: document.getElementById("phone").value,
+          email: document.getElementById("email").value,
+          linkedin: document.getElementById("linkedin").value,
+          jobTitle: document.getElementById("jobTitle").value,
+          company: document.getElementById("company").value,
+          companyUrl: document.getElementById("companyUrl").value,
+          jobDescription: document.getElementById("jobDescription").value,
+          experienceData,
+          educationData,
+          internshipData,
+          overrideWordCount: wordCount,
+        };
+
+        // 3) API-Call mit vollständigem Payload
+        try {
+          const response = await fetch("/api/generate-cover-letter", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          const result = await response.json();
+          if (response.ok && result.coverLetter) {
+            const formatted = formatLetter(result.coverLetter);
+            lastGeneratedLetterHTML = formatted;
+            document.getElementById("responseOutput").innerHTML = formatted;
+            saveState();
+            loadingText.textContent = `✅ Neues Anschreiben (~${wordCount} Wörter) erstellt!`;
+          } else {
+            loadingText.textContent = "❌ Fehler bei der Neugenerierung.";
+            console.error(result);
+          }
+        } catch (err) {
+          loadingText.textContent = "❌ Fehler beim Senden der Anfrage.";
+          console.error(err);
+        } finally {
+          setTimeout(() => (loadingStatus.hidden = true), 2000);
+        }
+      }
+
+      // Kürzen- und Verlängern-Funktionen
+      async function shortenLetter() {
+        shortenCount++;
+        saveState();
+        await editLetter("shorten", shortenCount);
+      }
+
+      async function extendLetter() {
+        extendCount++;
+        saveState();
+        await editLetter("extend", extendCount);
+      }
+
+      async function editLetter(action, count = 1) {
+        const loadingStatus = document.getElementById("loadingStatus");
+        const loadingText = document.getElementById("loadingText");
+        loadingStatus.hidden = false;
+        loadingText.textContent =
+          action === "shorten"
+            ? "✂️ Kürze dein Anschreiben…"
+            : "➕ Verlängere dein Anschreiben…";
+
+        try {
+          const response = await fetch("/api/edit-cover-letter", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              coverLetterHTML: lastGeneratedLetterHTML,
+              action,
+              count,
+            }),
+          });
+          const result = await response.json();
+          if (response.ok && result.coverLetter) {
+            const formatted = formatLetter(result.coverLetter);
+            lastGeneratedLetterHTML = formatted;
+            document.getElementById("responseOutput").innerHTML = formatted;
+            lastAction = action;
+            saveState();
+            loadingText.textContent = "✅ Anschreiben aktualisiert!";
+          } else {
+            loadingText.textContent = "❌ Fehler beim Bearbeiten.";
+            console.error(result);
+          }
+        } catch (err) {
+          loadingText.textContent = "❌ Fehler beim Senden der Anfrage.";
+          console.error(err);
+        } finally {
+          setTimeout(() => {
+            loadingStatus.hidden = true;
+          }, 2000);
+        }
+      }
+
+      // Upload-Funktion
+      async function uploadCV(event) {
+        event.preventDefault();
+        const fileInput = document.getElementById("cvUpload");
+        const status = document.getElementById("uploadStatus");
+        if (!fileInput.files[0]) {
+          alert("Bitte eine PDF-Datei auswählen!");
+          return;
+        }
+        const formData = new FormData();
+        formData.append("cv", fileInput.files[0]);
+        status.style.display = "inline";
+        status.textContent = "📤 Datei wird hochgeladen...";
+        try {
+          const res = await fetch("/api/upload-cv", {
+            method: "POST",
+            body: formData,
+          });
+          const data = await res.json();
+          if (!data.extracted) {
+            status.textContent =
+              "⚠️ KI konnte keine Daten extrahieren. Bitte versuche es erneut.";
+            return;
+          }
+          status.textContent = "✅ KI-Daten erhalten. Verarbeite Antwort...";
+          await delay(500);
+          const json = data.extracted;
+          if (json.name)
+            document.getElementById("name").value = toTitleCase(json.name);
+          if (json.birthdate) {
+            const parts = json.birthdate.split(".");
+            if (parts.length === 3) {
+              document.getElementById("birthdate").value = `${
+                parts[2]
+              }-${parts[1].padStart(2, "0")}-${parts[0].padStart(2, "0")}`;
+            }
+          }
+          if (json.address)
+            document.getElementById("address").value = json.address;
+          if (json.phone) document.getElementById("phone").value = json.phone;
+          if (json.email) document.getElementById("email").value = json.email;
+          if (json.linkedin)
+            document.getElementById("linkedin").value = json.linkedin;
+          if (Array.isArray(json.experience)) {
+            experienceData = json.experience.map((exp) => ({
+              tätigkeit: exp.tätigkeit || "",
+              einrichtung: exp.einrichtung || "",
+              zeitraum: exp.zeitraum || "",
+            }));
+            renderExperienceList();
+          }
+          if (Array.isArray(json.education)) {
+            educationData = json.education.map((edu) => ({
+              abschluss: edu.abschluss || "",
+              schulname: edu.schulname || "",
+              zeitraum: edu.zeitraum || "",
+            }));
+            renderEducationList();
+          }
+          if (Array.isArray(json.internships)) {
+            internshipData = json.internships.map((intern) => ({
+              praktikum: intern.praktikum || "",
+              unternehmen: intern.unternehmen || "",
+              zeitraum: intern.zeitraum || "",
+            }));
+            renderInternshipList();
+          }
+          if (Array.isArray(json.languages)) {
+            languagesData = json.languages.map((lang) => ({
+              sprache: lang.sprache || "",
+              kenntnisse: lang.kenntnisse || "",
+            }));
+            renderLanguagesList();
+          }
+          status.textContent = "✅ Felder erfolgreich befüllt!";
+          saveState();
+        } catch (err) {
+          status.textContent = "❌ Fehler beim Upload.";
+          console.error(err);
+        }
+      }
+
+      function delay(ms) {
+        return new Promise((r) => setTimeout(r, ms));
+      }
+
+      // Render-Funktionen
+      function renderExperienceList() {
+        const list = document.getElementById("experienceList");
+        list.innerHTML = "";
+        experienceData.forEach((exp, i) => {
+          const itm = document.createElement("div");
+          itm.className = "list-group-item mb-3 shadow-sm rounded";
+          itm.innerHTML = `
+        <div class="row g-3 align-items-center">
+          <div class="col-md-1 d-flex align-items-center justify-content-center">
+            <span class="drag-handle" style="cursor: grab;">☰</span>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Tätigkeit</label>
+            <input type="text" class="form-control" value="${
+              exp.tätigkeit || ""
+            }"
+                   onchange="updateExperienceField(${i}, 'tätigkeit', this.value)">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Unternehmen</label>
+            <input type="text" class="form-control" value="${
+              exp.einrichtung || ""
+            }"
+                   onchange="updateExperienceField(${i}, 'einrichtung', this.value)">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Zeitraum</label>
+            <input type="text" class="form-control" value="${
+              exp.zeitraum || ""
+            }"
+                   onchange="updateExperienceField(${i}, 'zeitraum', this.value)">
+          </div>
+        </div>
+        <div class="text-end mt-2">
+          <button class="btn btn-sm btn-danger" onclick="deleteExperience(${i})">🗑️ Löschen</button>
+        </div>`;
+          list.appendChild(itm);
+        });
+      }
+
+      function renderEducationList() {
+        const list = document.getElementById("educationList");
+        list.innerHTML = "";
+        educationData.forEach((edu, i) => {
+          const itm = document.createElement("div");
+          itm.className = "list-group-item mb-3 shadow-sm rounded";
+          itm.innerHTML = `
+        <div class="row g-3 align-items-center">
+          <div class="col-md-1 d-flex align-items-center justify-content-center">
+            <span class="drag-handle" style="cursor: grab;">☰</span>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Abschluss</label>
+            <input type="text" class="form-control" value="${
+              edu.abschluss || ""
+            }"
+                   onchange="updateEducationField(${i}, 'abschluss', this.value)">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Schulname</label>
+            <input type="text" class="form-control" value="${
+              edu.schulname || ""
+            }"
+                   onchange="updateEducationField(${i}, 'schulname', this.value)">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Zeitraum</label>
+            <input type="text" class="form-control" value="${
+              edu.zeitraum || ""
+            }"
+                   onchange="updateEducationField(${i}, 'zeitraum', this.value)">
+          </div>
+        </div>
+        <div class="text-end mt-2">
+          <button class="btn btn-sm btn-danger" onclick="deleteEducation(${i})">🗑️ Löschen</button>
+        </div>`;
+          list.appendChild(itm);
+        });
+      }
+
+      function renderInternshipList() {
+        const list = document.getElementById("internshipList");
+        list.innerHTML = "";
+        internshipData.forEach((intern, i) => {
+          const itm = document.createElement("div");
+          itm.className = "list-group-item mb-3 shadow-sm rounded";
+          itm.innerHTML = `
+        <div class="row g-3 align-items-center">
+          <div class="col-md-1 d-flex align-items-center justify-content-center">
+            <span class="drag-handle" style="cursor: grab;">☰</span>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Praktikum</label>
+            <input type="text" class="form-control" value="${
+              intern.praktikum || ""
+            }"
+                   onchange="updateInternshipField(${i}, 'praktikum', this.value)">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Unternehmen</label>
+            <input type="text" class="form-control" value="${
+              intern.unternehmen || ""
+            }"
+                   onchange="updateInternshipField(${i}, 'unternehmen', this.value)">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Zeitraum</label>
+            <input type="text" class="form-control" value="${
+              intern.zeitraum || ""
+            }"
+                   onchange="updateInternshipField(${i}, 'zeitraum', this.value)">
+          </div>
+        </div>
+        <div class="text-end mt-2">
+          <button class="btn btn-sm btn-danger" onclick="deleteInternship(${i})">🗑️ Löschen</button>
+        </div>`;
+          list.appendChild(itm);
+        });
+      }
+
+      function renderLanguagesList() {
+        const list = document.getElementById("languagesList");
+        list.innerHTML = "";
+        languagesData.forEach((lang, i) => {
+          const itm = document.createElement("div");
+          itm.className = "list-group-item mb-3 shadow-sm rounded";
+          itm.innerHTML = `
+      <div class="row g-3 align-items-center">
+        <div class="col-md-5">
+          <label class="form-label">Sprache</label>
+          <input type="text" class="form-control" value="${
+            lang.sprache || ""
+          }" onchange="updateLanguageField(${i}, 'sprache', this.value)">
+        </div>
+        <div class="col-md-5">
+          <label class="form-label">Kenntnisse</label>
+          <input type="text" class="form-control" value="${
+            lang.kenntnisse || ""
+          }" onchange="updateLanguageField(${i}, 'kenntnisse', this.value)">
+        </div>
+        <div class="col-md-2 text-end">
+          <button class="btn btn-sm btn-danger" onclick="deleteLanguage(${i})">🗑️ Löschen</button>
+        </div>
+      </div>
+    `;
+          list.appendChild(itm);
+        });
+      }
+
+      // Update-Funktionen
+      function updateExperienceField(index, field, value) {
+        experienceData[index][field] = value;
+        saveState();
+      }
+      function updateEducationField(index, field, value) {
+        educationData[index][field] = value;
+        saveState();
+      }
+      function updateInternshipField(index, field, value) {
+        internshipData[index][field] = value;
+        saveState();
+      }
+      function updateLanguageField(index, field, value) {
+        languagesData[index][field] = value;
+        saveState();
+      }
+
+      // Löschen
+      function deleteExperience(index) {
+        if (confirm("Willst du diese Erfahrung wirklich löschen?")) {
+          experienceData.splice(index, 1);
+          renderExperienceList();
+          saveState();
+        }
+      }
+      function deleteEducation(index) {
+        if (
+          confirm("Willst du diese Schulbildung/Ausbildung wirklich löschen?")
+        ) {
+          educationData.splice(index, 1);
+          renderEducationList();
+          saveState();
+        }
+      }
+      function deleteInternship(index) {
+        if (confirm("Willst du dieses Praktikum wirklich löschen?")) {
+          internshipData.splice(index, 1);
+          renderInternshipList();
+          saveState();
+        }
+      }
+      function deleteLanguage(index) {
+        if (confirm("Willst du diese Sprache wirklich löschen?")) {
+          languagesData.splice(index, 1);
+          renderLanguagesList();
+          saveState();
+        }
+      }
+
+      // Hinzufügen
+      function addExperience() {
+        experienceData.push({ tätigkeit: "", zeitraum: "", einrichtung: "" });
+        renderExperienceList();
+        saveState();
+      }
+      function addEducation() {
+        educationData.push({ abschluss: "", schulname: "", zeitraum: "" });
+        renderEducationList();
+        saveState();
+      }
+      function addInternship() {
+        internshipData.push({ praktikum: "", unternehmen: "", zeitraum: "" });
+        renderInternshipList();
+        saveState();
+      }
+      function addLanguage() {
+        languagesData.push({ sprache: "", kenntnisse: "" });
+        renderLanguagesList();
+        saveState();
+      }
+
+      // Sortable-Init
+      new Sortable(document.getElementById("experienceList"), {
+        animation: 150,
+        handle: ".drag-handle",
+        ghostClass: "bg-light",
+        onEnd: (evt) => {
+          const [moved] = experienceData.splice(evt.oldIndex, 1);
+          experienceData.splice(evt.newIndex, 0, moved);
+          saveState();
+        },
+      });
+      new Sortable(document.getElementById("educationList"), {
+        animation: 150,
+        handle: ".drag-handle",
+        ghostClass: "bg-light",
+        onEnd: (evt) => {
+          const [moved] = educationData.splice(evt.oldIndex, 1);
+          educationData.splice(evt.newIndex, 0, moved);
+          saveState();
+        },
+      });
+      new Sortable(document.getElementById("internshipList"), {
+        animation: 150,
+        handle: ".drag-handle",
+        ghostClass: "bg-light",
+        onEnd: (evt) => {
+          const [moved] = internshipData.splice(evt.oldIndex, 1);
+          internshipData.splice(evt.newIndex, 0, moved);
+          saveState();
+        },
+      });
+
+      // Markdown → HTML
+      function formatLetter(text) {
+        text = text.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+        const paragraphs = text.trim().split(/\n\s*\n/);
+        return paragraphs
+          .map((p) => `<p>${p.replace(/\n/g, " ")}</p>`)
+          .join("");
+      }
+
+      // Kopieren
+      function copyLetter() {
+        navigator.clipboard
+          .writeText(quill.getText())
+          .then(() => alert("Anschreiben kopiert!"));
+      }
+
+      // Edit Mode
+      function enterEditMode() {
+        document.getElementById("responseOutput").style.display = "none";
+        document.getElementById("quillWrapper").style.display = "block";
+        quill.clipboard.dangerouslyPasteHTML(lastGeneratedLetterHTML || "");
+        document.getElementById("editButton").hidden = true;
+        document.getElementById("saveButton").hidden = false;
+      }
+      function exitEditMode() {
+        lastGeneratedLetterHTML = quill.root.innerHTML;
+        document.getElementById("responseOutput").innerHTML =
+          lastGeneratedLetterHTML;
+        saveState();
+        document.getElementById("quillWrapper").style.display = "none";
+        document.getElementById("responseOutput").style.display = "block";
+        document.getElementById("editButton").hidden = false;
+        document.getElementById("saveButton").hidden = true;
+      }
+
+      // PDF-Export
+      function exportPdf() {
+        const element = document.getElementById("responseOutput");
+        html2pdf()
+          .set({
+            margin: 10,
+            filename: "Bewerbung.pdf",
+            image: { type: "jpeg", quality: 0.98 },
+            html2canvas: {
+              scale: 4,
+              dpi: 300,
+              letterRendering: true,
+              useCORS: true,
+            },
+            jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+          })
+          .from(element)
+          .save();
+      }
+
+      /* Jobsuche */
+      async function geocodeAddress(addrString) {
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+            addrString
+          )}`
+        );
+        const data = await res.json();
+        if (data.length) {
+          return { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) };
+        }
+        return null;
+      }
+
+      // Beispiel: nachdem User Adresse eingetragen hat
+      document
+        .getElementById("address")
+        .addEventListener("change", async (e) => {
+          const coords = await geocodeAddress(e.target.value);
+          if (coords) window.userLocation = coords;
+        });
+
+      async function searchJobs() {
+        // 1) Quellen auslesen
+        const sources = Array.from(
+          document.querySelectorAll(
+            "#tab4-filters input[type=checkbox]:checked"
+          )
+        ).map((cb) => cb.value);
+
+        // 2) Umkreis (km)
+        const radiusEl = document.getElementById("radius");
+        const radiusKm =
+          radiusEl && radiusEl.value ? parseInt(radiusEl.value, 10) : null;
+
+        // 3) PLZ (filter) - Fallback auf Tab 1-PLZ
+        const postalEl = document.getElementById("postalCode");
+        const postalCode =
+          postalEl && postalEl.value.trim()
+            ? postalEl.value.trim()
+            : window.userPostalCode || null;
+
+        // 4) Geo-Koordinaten aus global userLocation
+        const addressPayload = {};
+        if (
+          window.userLocation &&
+          window.userLocation.lat != null &&
+          window.userLocation.lon != null
+        ) {
+          addressPayload.lat = window.userLocation.lat;
+          addressPayload.lon = window.userLocation.lon;
+        }
+        if (postalCode) {
+          addressPayload.postalCode = postalCode;
+        }
+
+        // 5) Formulardaten aus Tab 1
+        const name = document.getElementById("name").value.trim();
+        const birthdate = document.getElementById("birthdate").value;
+        const addressStr = document.getElementById("address").value.trim();
+        const phone = document.getElementById("phone").value.trim();
+        const email = document.getElementById("email").value.trim();
+        const linkedin = document.getElementById("linkedin").value.trim();
+
+        // 6) Payload zusammenbauen
+        const payload = {
+          name,
+          birthdate,
+          address: addressStr,
+          phone,
+          email,
+          linkedin,
+          experienceData, // aus Tab 1, global definiert
+          educationData, // aus Tab 1, global definiert
+          internshipData, // aus Tab 1, global definiert
+          filters: {
+            sources,
+            radiusKm,
+          },
+          // nur anhängen, wenn wir Geo- oder PLZ-Daten haben
+          ...(Object.keys(addressPayload).length > 0 && {
+            geo: addressPayload,
+          }),
+        };
+
+        // 7) Request ans Backend
+        let res;
+        try {
+          res = await fetch("/api/search-jobs", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+        } catch (err) {
+          return alert("Netzwerkfehler bei der Jobsuche.");
+        }
+
+        if (!res.ok) {
+          console.error("Backend-Error:", await res.text());
+          return alert("Fehler bei der Jobsuche (Server 500).");
+        }
+
+        // 8) Ergebnisse holen & gruppiert rendern
+        const { jobs, keywords } = await res.json();
+        const container = document.getElementById("jobResults");
+        container.innerHTML = "";
+
+        if (!jobs.length) {
+          container.innerHTML =
+            '<div class="text-muted">Keine Jobs gefunden.</div>';
+          return;
+        }
+
+        // Jobs nach Keyword gruppieren
+        const jobsByKw = {};
+        jobs.forEach((job) => {
+          if (!jobsByKw[job.keyword]) jobsByKw[job.keyword] = [];
+          jobsByKw[job.keyword].push(job);
+        });
+
+        // Für jedes Keyword eine Sektion bauen
+        for (const kw of keywords) {
+          const section = document.createElement("div");
+          section.className = "mb-5";
+
+          // Überschrift
+          const h4 = document.createElement("h4");
+          h4.textContent = `🔍 Suchbegriff: ${kw}`;
+          section.appendChild(h4);
+
+          // Card-Container (Bootstrap Grid)
+          const row = document.createElement("div");
+          row.className = "row g-4";
+
+          (jobsByKw[kw] || []).forEach((job) => {
+            const col = document.createElement("div");
+            col.className = "col-12 col-md-6 col-lg-4";
+
+            col.innerHTML = `
+        <div class="card h-100 shadow-sm">
+          <div class="card-body d-flex flex-column">
+            <h5 class="card-title">${job.title}</h5>
+            <p class="card-text mb-2">
+              <strong>${job.company}</strong><br/>
+              <small class="text-muted">${job.location}</small>
+            </p>
+            <a href="${job.url}" target="_blank" class="mt-auto btn btn-outline-primary">
+              Stellenangebot öffnen
+            </a>
+          </div>
+        </div>
+      `;
+            row.appendChild(col);
+          });
+
+          section.appendChild(row);
+          container.appendChild(section);
+        }
+      }
+
+      // Listener bleibt unverändert
+      document
+        .getElementById("searchJobsBtn")
+        .addEventListener("click", searchJobs);
+
+      async function generateHtmlCv() {
+        const btn = document.getElementById("generateCvBtn");
+        const spinner = document.getElementById("cvLoading");
+
+        btn.disabled = true;
+        spinner.hidden = false;
+
+        try {
+          const saved = JSON.parse(localStorage.getItem("jobAgentState")) || {};
+
+          const payload = {
+            name: saved.name || "NAME NACHNAME",
+            birthdate: saved.birthdate || "TT.MM.JJJJ",
+            address: saved.address || "Straße, PLZ Ort",
+            phone: saved.phone || "+49 ...",
+            email: saved.email || "email@beispiel.de",
+            linkedin: saved.linkedin || "",
+            experience: saved.experienceData || [],
+            education: saved.educationData || [],
+            internships: saved.internshipData || [],
+            languages: saved.languagesData || [],
+            photo: uploadedPhotoUrl || "", // Nur merken, nicht nochmal hochladen!
+          };
+
+          const res = await fetch("/api/generate-cv", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+
+          const data = await res.json();
+
+          if (!res.ok) {
+            throw new Error(
+              data.error || "Fehler beim Generieren des Lebenslaufs."
+            );
+          }
+
+          const popup = window.open(
+            "",
+            "_blank",
+            "width=1200,height=800,scrollbars=yes"
+          );
+          if (!popup) {
+            alert("Popup-Blocker aktiv? Bitte erlauben!");
+            return;
+          }
+
+          popup.document.write(data.htmlCv);
+          popup.document.close();
+        } catch (err) {
+          console.error(err);
+          alert("Fehler beim Generieren des Lebenslaufs: " + err.message);
+        } finally {
+          spinner.hidden = true;
+          btn.disabled = false;
+        }
+      }
+
+      async function uploadPhoto() {
+        const fileInput = document.getElementById("cv-photo-input");
+        if (!fileInput.files.length) return "";
+
+        const formData = new FormData();
+        formData.append("photo", fileInput.files[0]);
+
+        try {
+          const res = await fetch("/api/upload-photo", {
+            method: "POST",
+            body: formData,
+          });
+
+          const data = await res.json();
+          if (res.ok && data.url) {
+            const imgEl = document.querySelector(".profile-img");
+            imgEl.src = data.url; // Vorschau aktualisieren
+            uploadedPhotoUrl = data.url; // Pfad merken
+            return data.url;
+          } else {
+            console.error("Upload-Fehler:", data.error);
+            return "";
+          }
+        } catch (err) {
+          console.error("Upload-Fehler:", err);
+          return "";
+        }
+      }
+    </script>
+  </body>
+</html>
